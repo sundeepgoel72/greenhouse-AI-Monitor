@@ -1,0 +1,17 @@
+sensors:
+  environment:
+    temperature_humidity: sht31
+    light: bh1750
+
+  moisture:
+    sensor_a:
+      location: front_left_bed
+      mqtt_topic: grow/moisture/front_left
+
+    sensor_b:
+      location: front_right_bed
+      mqtt_topic: grow/moisture/front_right
+
+    sensor_c:
+      location: middle_reference_bed
+      mqtt_topic: grow/moisture/middle
