@@ -1,7 +1,7 @@
 bags:
   bag1:
     crop: tomato
-    camera: rooftop_cam_1
+    camera: rooftop_growhouse
     roi:
       x: 100
       y: 150
@@ -10,7 +10,7 @@ bags:
 
   bag2:
     crop: spinach
-    camera: rooftop_cam_1
+    camera: rooftop_growhouse
     roi:
       x: 650
       y: 150
