@@ -2,31 +2,38 @@
 
 ## MVP Decision
 
-Use the existing Frigate camera for the rooftop growhouse.
+Use the existing Frigate camera for the rooftop polyhouse/growhouse.
 
-Initial monitoring will cover 2 grow bags, with the option to expand to 4 bags if the image quality is sufficient.
+The initial monitoring scope is limited to the nearest 4 grow beds only.
+
+Reason:
+
+- The camera has a shallow end-to-end viewing angle.
+- Rear beds are visible but have lower effective resolution.
+- Growth monitoring for all 12 beds from this one view would be too coarse.
+- Reliable leaf or disease inspection is not realistic from this wide view.
 
 ## Wide View vs Closeup View
 
-### Wide fixed view
+### Wide fixed Frigate view
 
-Good for:
+Good for the nearest 4 beds:
 
 - Growth trend
 - Green coverage percentage
 - Wilting / drooping trend
 - Missing growth
-- Uneven growth between bags
+- Uneven growth between beds
 - Weed-like growth in soil area
 - Watering stress when combined with soil moisture
 - Light/shade issues when combined with lux readings
 
 Limitations:
 
-- May not show early pest damage
-- May not show small disease spots
-- May not show leaf texture clearly
-- May miss nutrient deficiency until visible at canopy level
+- Rear beds should not be used for MVP analytics from this camera.
+- Early pest damage is unlikely to be visible.
+- Small leaf disease spots are unlikely to be visible.
+- Nutrient deficiency may only be detected once visible at canopy level.
 
 ### Closeup leaf view
 
@@ -47,6 +54,7 @@ Use two image tiers:
 ```text
 Tier 1: Wide Frigate snapshot
   - every 30 minutes
+  - nearest 4 beds only
   - used for growth, coverage, stress trend, alerts
 
 Tier 2: Closeup leaf image
@@ -57,20 +65,18 @@ Tier 2: Closeup leaf image
 
 ## MVP Approach
 
-Do not block MVP on closeup images.
-
 Phase 1 should work with the wide Frigate camera only:
 
-- define ROI for bag1 and bag2
+- define ROI/polygon for bed1 to bed4
 - calculate green coverage
 - calculate yellow/brown coverage
-- combine with soil moisture
+- combine with representative soil moisture
 - publish MQTT metrics and alerts
 
 Phase 2 can add closeup capture:
 
 - manual phone photo upload
-- second fixed camera
+- second fixed closeup camera
 - ESP32-CAM / USB camera
 - crop-specific leaf health classifier
 
@@ -78,7 +84,7 @@ Phase 2 can add closeup capture:
 
 For a 50 ft x 20 ft growhouse:
 
-- 1 camera can monitor 2 to 4 bags well
-- 1 camera may monitor all 12 bags only at a coarse level
-- 3 to 4 cameras is more realistic for reliable 12-bag monitoring
-- closeup leaf diagnostics will probably need a separate closeup workflow
+- this camera should monitor the nearest 4 beds only
+- rear beds need either another camera or a moved/duplicated camera position
+- 3 to 4 cameras is more realistic for reliable 12-bed monitoring
+- closeup leaf diagnostics will need a separate closeup workflow
