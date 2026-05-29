@@ -1,0 +1,12 @@
+crops:
+  tomato:
+    moisture_min_pct: 35
+    moisture_max_pct: 75
+    temp_max_c: 38
+    yellow_pct_warn: 10
+
+  spinach:
+    moisture_min_pct: 50
+    moisture_max_pct: 85
+    temp_max_c: 32
+    yellow_pct_warn: 8
