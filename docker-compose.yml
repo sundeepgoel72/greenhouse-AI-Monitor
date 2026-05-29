@@ -1,0 +1,11 @@
+services:
+  greenhouse-ai-monitor:
+    build: .
+    container_name: greenhouse-ai-monitor
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./config:/app/config:ro
+      - ./storage:/app/storage
+      - ./samples:/app/samples:ro
