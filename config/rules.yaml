@@ -1,0 +1,13 @@
+rules:
+  watering_needed:
+    moisture_below_crop_min: true
+
+  heat_stress:
+    temp_above_crop_max: true
+
+  yellowing:
+    yellow_pct_above_crop_warn: true
+
+  growth_stall:
+    growth_below_pct: 1
+    days: 5
