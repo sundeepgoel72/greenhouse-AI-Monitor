@@ -70,9 +70,9 @@ Next implementation milestones:
 
 3. Tests
 
-   - Add focused backend tests for polygon ROI metric calculation.
-   - Add focused backend tests for alert generation thresholds.
-   - Add an ingestion persistence test if practical with a generated image fixture.
+   - Done: Add focused backend tests for polygon ROI metric calculation.
+   - Done: Add focused backend tests for alert generation thresholds.
+   - Done: Add an ingestion persistence test with a generated image fixture.
 
 4. Documentation and handover
 

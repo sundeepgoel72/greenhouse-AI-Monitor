@@ -30,6 +30,12 @@ npm install
 npm run dev
 ```
 
+Backend tests:
+
+```bash
+backend/.venv/bin/python -m pytest backend/tests
+```
+
 Optional local environment:
 
 ```bash

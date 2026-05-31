@@ -14,8 +14,8 @@ from services.mqtt_publisher import MqttPublisher
 
 
 class MetricsEngine:
-    def __init__(self):
-        self.publisher = MqttPublisher()
+    def __init__(self, publisher: MqttPublisher | None = None):
+        self.publisher = publisher or MqttPublisher()
         self.thresholds = ColorThresholds.from_settings()
         self.alert_thresholds = AlertThresholds.from_settings()
 
@@ -163,9 +163,9 @@ class AlertThresholds:
 
 
 class SnapshotIngestionService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, engine: MetricsEngine | None = None):
         self.db = db
-        self.engine = MetricsEngine()
+        self.engine = engine or MetricsEngine()
 
     def ingest_from_frigate(
         self, client: FrigateClient

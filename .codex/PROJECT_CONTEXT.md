@@ -597,6 +597,7 @@ Commands run successfully:
 ```bash
 python3 -m compileall backend
 backend/.venv/bin/python -c "import sys; sys.path.insert(0, 'backend'); from app.main import app; print(app.title)"
+backend/.venv/bin/python -m pytest backend/tests
 cd frontend && npm run build
 curl -s http://localhost:8088/api/health
 curl -s -I http://localhost:5173/
@@ -637,9 +638,8 @@ P0 vertical slice is present. Continue with hardening and field-readiness while 
 
 ### Immediate P0 Hardening Tasks
 
-1. Add backend tests for polygon metric extraction, alert rule generation, and ingestion persistence.
-2. Add frontend checks for build stability after dashboard additions.
-3. Update handover after each milestone.
+1. Add frontend checks for build stability after dashboard additions.
+2. Update handover after each milestone.
 
 ### Calibration Tasks
 

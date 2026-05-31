@@ -150,6 +150,7 @@ Successful:
 python3 -m compileall backend
 backend/.venv/bin/python -c "import sys; sys.path.insert(0, 'backend'); from app.main import app; print(app.title)"
 cd frontend && npm run build
+backend/.venv/bin/python -m pytest backend/tests
 curl -s http://localhost:8088/api/health
 curl -s -I http://localhost:5173/
 ```

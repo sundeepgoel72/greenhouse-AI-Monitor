@@ -1,7 +1,10 @@
 from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env")
+
     database_url: str = "sqlite:///./greenhouse.db"
     frigate_base_url: str = "http://localhost:5000"
     frigate_camera: str = "rooftop_growhouse"
@@ -22,9 +25,6 @@ class Settings(BaseSettings):
     alert_yellow_critical_above: float = 15
     alert_yellow_warning_above: float = 8
     alert_soil_warning_above: float = 65
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()

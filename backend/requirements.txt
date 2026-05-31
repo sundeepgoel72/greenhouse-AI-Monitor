@@ -8,3 +8,4 @@ opencv-python-headless==4.10.0.84
 numpy==2.2.1
 paho-mqtt==2.1.0
 python-multipart==0.0.20
+pytest==8.3.4
