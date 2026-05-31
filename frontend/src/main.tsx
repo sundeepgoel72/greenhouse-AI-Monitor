@@ -1,0 +1,456 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import {
+  Camera,
+  CirclePlus,
+  ClipboardList,
+  Leaf,
+  RefreshCw,
+  Save,
+  Trash2,
+  Upload,
+} from "lucide-react";
+import "./styles.css";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8088";
+
+type Point = { x: number; y: number };
+type Bed = {
+  id: number;
+  name: string;
+  crop?: string | null;
+  sowing_date?: string | null;
+  transplant_date?: string | null;
+  polygon: Point[];
+};
+type Snapshot = {
+  id: number;
+  timestamp: string;
+  image_path: string;
+  image_url: string;
+};
+type Metric = {
+  id: number;
+  bed_id: number;
+  snapshot_id: number;
+  green_pct: number;
+  yellow_pct: number;
+  soil_pct: number;
+  created_at: string;
+};
+type Observation = {
+  id: number;
+  bed_id: number;
+  kind: string;
+  note?: string | null;
+  created_at: string;
+};
+
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers:
+      init?.body instanceof FormData ? undefined : { "Content-Type": "application/json" },
+    ...init,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || response.statusText);
+  }
+  return response.json() as Promise<T>;
+}
+
+function App() {
+  const [beds, setBeds] = useState<Bed[]>([]);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [selectedBedId, setSelectedBedId] = useState<number | null>(null);
+  const [draftPolygon, setDraftPolygon] = useState<Point[]>([]);
+  const [status, setStatus] = useState("Ready");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const selectedBed = beds.find((bed) => bed.id === selectedBedId) ?? beds[0] ?? null;
+  const latestByBed = useMemo(() => {
+    const map = new Map<number, Metric>();
+    for (const metric of metrics) {
+      if (!map.has(metric.bed_id)) map.set(metric.bed_id, metric);
+    }
+    return map;
+  }, [metrics]);
+
+  async function load() {
+    const [bedData, metricData, observationData, latestSnapshot] = await Promise.all([
+      api<Bed[]>("/api/beds"),
+      api<Metric[]>("/api/metrics?limit=80"),
+      api<Observation[]>("/api/observations?limit=20"),
+      api<Snapshot | null>("/api/snapshots/latest"),
+    ]);
+    setBeds(bedData);
+    setMetrics(metricData);
+    setObservations(observationData);
+    setSnapshot(latestSnapshot);
+    if (!selectedBedId && bedData.length > 0) {
+      setSelectedBedId(bedData[0].id);
+      setDraftPolygon(bedData[0].polygon);
+    }
+  }
+
+  useEffect(() => {
+    load().catch((error) => setStatus(error.message));
+  }, []);
+
+  useEffect(() => {
+    if (selectedBed) setDraftPolygon(selectedBed.polygon);
+  }, [selectedBedId, beds.length]);
+
+  async function seedBeds() {
+    const defaults = [
+      { name: "Bed 1", crop: "Unassigned" },
+      { name: "Bed 2", crop: "Unassigned" },
+      { name: "Bed 3", crop: "Unassigned" },
+      { name: "Bed 4", crop: "Unassigned" },
+    ];
+    setStatus("Creating beds");
+    for (const bed of defaults) {
+      await api<Bed>("/api/beds", {
+        method: "POST",
+        body: JSON.stringify({ ...bed, polygon: [] }),
+      });
+    }
+    await load();
+    setStatus("Beds ready");
+  }
+
+  async function ingestFrigate() {
+    setStatus("Fetching Frigate snapshot");
+    const result = await api<{ snapshot: Snapshot; metrics: Metric[] }>("/api/ingest/frigate", {
+      method: "POST",
+    });
+    setSnapshot(result.snapshot);
+    await load();
+    setStatus("Snapshot processed");
+  }
+
+  async function uploadSnapshot(file: File) {
+    const form = new FormData();
+    form.append("image", file);
+    setStatus("Uploading snapshot");
+    const result = await api<{ snapshot: Snapshot; metrics: Metric[] }>("/api/ingest/upload", {
+      method: "POST",
+      body: form,
+    });
+    setSnapshot(result.snapshot);
+    await load();
+    setStatus("Snapshot processed");
+  }
+
+  async function savePolygon() {
+    if (!selectedBed) return;
+    setStatus("Saving ROI");
+    await api<Bed>(`/api/beds/${selectedBed.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ polygon: draftPolygon }),
+    });
+    await load();
+    setStatus("ROI saved");
+  }
+
+  async function addObservation(formData: FormData) {
+    const bedId = Number(formData.get("bed_id"));
+    const kind = String(formData.get("kind"));
+    const note = String(formData.get("note") || "");
+    await api<Observation>("/api/observations", {
+      method: "POST",
+      body: JSON.stringify({ bed_id: bedId, kind, note }),
+    });
+    await load();
+  }
+
+  return (
+    <main>
+      <header className="app-header">
+        <div>
+          <h1>Greenhouse AI Monitor</h1>
+          <p>{status}</p>
+        </div>
+        <div className="actions">
+          <button title="Refresh" onClick={() => load()}>
+            <RefreshCw size={18} />
+            Refresh
+          </button>
+          <button title="Fetch Frigate snapshot" onClick={() => ingestFrigate()}>
+            <Camera size={18} />
+            Frigate
+          </button>
+          <button title="Upload snapshot" onClick={() => fileRef.current?.click()}>
+            <Upload size={18} />
+            Upload
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) uploadSnapshot(file).catch((error) => setStatus(error.message));
+            }}
+          />
+        </div>
+      </header>
+
+      {beds.length === 0 ? (
+        <section className="empty-state">
+          <Leaf size={32} />
+          <h2>Four monitored beds</h2>
+          <button onClick={() => seedBeds()}>
+            <CirclePlus size={18} />
+            Create
+          </button>
+        </section>
+      ) : (
+        <>
+          <section className="metrics-grid">
+            {beds.map((bed) => (
+              <BedMetricCard
+                key={bed.id}
+                bed={bed}
+                metric={latestByBed.get(bed.id)}
+                active={selectedBed?.id === bed.id}
+                onClick={() => setSelectedBedId(bed.id)}
+              />
+            ))}
+          </section>
+
+          <section className="workspace">
+            <RoiCalibrator
+              beds={beds}
+              selectedBed={selectedBed}
+              snapshot={snapshot}
+              draftPolygon={draftPolygon}
+              setDraftPolygon={setDraftPolygon}
+              setSelectedBedId={setSelectedBedId}
+              savePolygon={() => savePolygon().catch((error) => setStatus(error.message))}
+            />
+            <aside className="side-panel">
+              <MetricsTable beds={beds} metrics={metrics.slice(0, 12)} />
+              <ObservationForm beds={beds} onSubmit={addObservation} />
+              <ObservationList observations={observations} beds={beds} />
+            </aside>
+          </section>
+        </>
+      )}
+    </main>
+  );
+}
+
+function BedMetricCard({
+  bed,
+  metric,
+  active,
+  onClick,
+}: {
+  bed: Bed;
+  metric?: Metric;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button className={`metric-card ${active ? "active" : ""}`} onClick={onClick}>
+      <span className="bed-name">{bed.name}</span>
+      <span className="crop">{bed.crop || "Unassigned"}</span>
+      <div className="metric-row">
+        <MetricValue label="Green" value={metric?.green_pct} />
+        <MetricValue label="Yellow" value={metric?.yellow_pct} />
+        <MetricValue label="Soil" value={metric?.soil_pct} />
+      </div>
+    </button>
+  );
+}
+
+function MetricValue({ label, value }: { label: string; value?: number }) {
+  return (
+    <span>
+      <strong>{value === undefined ? "--" : value.toFixed(1)}</strong>
+      <small>{label}</small>
+    </span>
+  );
+}
+
+function RoiCalibrator({
+  beds,
+  selectedBed,
+  snapshot,
+  draftPolygon,
+  setDraftPolygon,
+  setSelectedBedId,
+  savePolygon,
+}: {
+  beds: Bed[];
+  selectedBed: Bed | null;
+  snapshot: Snapshot | null;
+  draftPolygon: Point[];
+  setDraftPolygon: (polygon: Point[]) => void;
+  setSelectedBedId: (id: number) => void;
+  savePolygon: () => void;
+}) {
+  const imageRef = useRef<HTMLImageElement>(null);
+  const imageUrl = snapshot ? `${API_BASE}${snapshot.image_url}` : "";
+
+  function addPoint(event: React.MouseEvent<HTMLDivElement>) {
+    const image = imageRef.current;
+    if (!image) return;
+    const rect = image.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * image.naturalWidth;
+    const y = ((event.clientY - rect.top) / rect.height) * image.naturalHeight;
+    setDraftPolygon([...draftPolygon, { x: Math.max(0, x), y: Math.max(0, y) }]);
+  }
+
+  return (
+    <section className="calibrator">
+      <div className="section-title">
+        <h2>ROI Calibration</h2>
+        <div className="toolbar">
+          <select
+            value={selectedBed?.id ?? ""}
+            onChange={(event) => setSelectedBedId(Number(event.target.value))}
+          >
+            {beds.map((bed) => (
+              <option key={bed.id} value={bed.id}>
+                {bed.name}
+              </option>
+            ))}
+          </select>
+          <button title="Clear polygon" onClick={() => setDraftPolygon([])}>
+            <Trash2 size={18} />
+          </button>
+          <button title="Save ROI" onClick={savePolygon}>
+            <Save size={18} />
+            Save
+          </button>
+        </div>
+      </div>
+      <div className="canvas" onClick={addPoint}>
+        {snapshot ? (
+          <>
+            <img ref={imageRef} src={imageUrl} alt="Latest greenhouse snapshot" />
+            <svg className="overlay" viewBox={`0 0 ${imageRef.current?.naturalWidth || 1} ${imageRef.current?.naturalHeight || 1}`}>
+              {draftPolygon.length > 1 && (
+                <polygon
+                  points={draftPolygon.map((point) => `${point.x},${point.y}`).join(" ")}
+                  className="roi-shape"
+                />
+              )}
+              {draftPolygon.map((point, index) => (
+                <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r="9" />
+              ))}
+            </svg>
+          </>
+        ) : (
+          <div className="snapshot-placeholder">
+            <Camera size={30} />
+            <span>No snapshot</span>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MetricsTable({ beds, metrics }: { beds: Bed[]; metrics: Metric[] }) {
+  const bedName = (id: number) => beds.find((bed) => bed.id === id)?.name ?? `Bed ${id}`;
+  return (
+    <section className="panel">
+      <h2>Metrics</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Bed</th>
+            <th>Green</th>
+            <th>Yellow</th>
+            <th>Soil</th>
+          </tr>
+        </thead>
+        <tbody>
+          {metrics.map((metric) => (
+            <tr key={metric.id}>
+              <td>{bedName(metric.bed_id)}</td>
+              <td>{metric.green_pct.toFixed(1)}%</td>
+              <td>{metric.yellow_pct.toFixed(1)}%</td>
+              <td>{metric.soil_pct.toFixed(1)}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+function ObservationForm({
+  beds,
+  onSubmit,
+}: {
+  beds: Bed[];
+  onSubmit: (formData: FormData) => Promise<void>;
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
+  return (
+    <section className="panel">
+      <h2>Observation</h2>
+      <form
+        ref={formRef}
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit(new FormData(event.currentTarget)).then(() => formRef.current?.reset());
+        }}
+      >
+        <select name="bed_id">
+          {beds.map((bed) => (
+            <option key={bed.id} value={bed.id}>
+              {bed.name}
+            </option>
+          ))}
+        </select>
+        <select name="kind">
+          {["Watered", "Fertilized", "Pruned", "Harvested", "Note"].map((kind) => (
+            <option key={kind} value={kind}>
+              {kind}
+            </option>
+          ))}
+        </select>
+        <input name="note" placeholder="Note" />
+        <button>
+          <ClipboardList size={18} />
+          Add
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function ObservationList({
+  observations,
+  beds,
+}: {
+  observations: Observation[];
+  beds: Bed[];
+}) {
+  const bedName = (id: number) => beds.find((bed) => bed.id === id)?.name ?? `Bed ${id}`;
+  return (
+    <section className="panel">
+      <h2>Recent</h2>
+      <div className="observation-list">
+        {observations.map((observation) => (
+          <div key={observation.id} className="observation">
+            <strong>
+              {observation.kind} · {bedName(observation.bed_id)}
+            </strong>
+            <span>{observation.note || new Date(observation.created_at).toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(<App />);
