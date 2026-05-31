@@ -19,7 +19,6 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env
 uvicorn app.main:app --host 0.0.0.0 --port 8088 --reload
 ```
 
@@ -28,6 +27,26 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Optional local environment:
+
+```bash
+cp .env.example .env
+```
+
+The frontend reads `VITE_API_BASE_URL`; by default it uses `http://localhost:8088`.
+
+## P0 endpoints
+
+- `GET /api/beds`
+- `POST /api/beds`
+- `PUT /api/beds/{bed_id}`
+- `POST /api/ingest/frigate`
+- `POST /api/ingest/upload`
+- `GET /api/snapshots/latest`
+- `GET /api/metrics`
+- `POST /api/observations`
+- `POST /api/alerts`
 
 ## Expected Frigate snapshot URL
 
