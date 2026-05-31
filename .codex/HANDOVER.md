@@ -36,6 +36,7 @@ Frontend:
 * Snapshot upload
 * Frigate ingestion button
 * ROI polygon calibration canvas
+* ROI point add, undo, clear, drag, and save flows
 * Metrics table
 * Recent alerts panel
 * Manual observations form/list
@@ -151,7 +152,7 @@ Recent P0 commits:
 ## Current Caveats
 
 * No reference polyhouse image was present in `assets/reference`, so calibration uses uploaded/latest snapshots.
-* ROI calibration supports click-to-add, clear, and save. Vertex drag/edit is not implemented.
+* ROI calibration supports click-to-add, undo, clear, drag, and save.
 * Alert rules are initial threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, but sensor ingestion is not implemented.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.

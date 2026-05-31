@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Save,
   Trash2,
+  Undo2,
   Upload,
 } from "lucide-react";
 import "./styles.css";
@@ -312,15 +313,36 @@ function RoiCalibrator({
   savePolygon: () => void;
 }) {
   const imageRef = useRef<HTMLImageElement>(null);
+  const [imageSize, setImageSize] = useState({ width: 1, height: 1 });
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
   const imageUrl = snapshot ? `${API_BASE}${snapshot.image_url}` : "";
 
-  function addPoint(event: React.MouseEvent<HTMLDivElement>) {
+  function pointFromEvent(event: React.PointerEvent<HTMLDivElement>): Point | null {
     const image = imageRef.current;
-    if (!image) return;
+    if (!image) return null;
     const rect = image.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * image.naturalWidth;
     const y = ((event.clientY - rect.top) / rect.height) * image.naturalHeight;
-    setDraftPolygon([...draftPolygon, { x: Math.max(0, x), y: Math.max(0, y) }]);
+    return {
+      x: Math.min(Math.max(0, x), image.naturalWidth),
+      y: Math.min(Math.max(0, y), image.naturalHeight),
+    };
+  }
+
+  function addPoint(event: React.PointerEvent<HTMLDivElement>) {
+    if ((event.target as Element).closest("[data-roi-handle]")) return;
+    const point = pointFromEvent(event);
+    if (!point) return;
+    setDraftPolygon([...draftPolygon, point]);
+  }
+
+  function movePoint(event: React.PointerEvent<HTMLDivElement>) {
+    if (dragIndex === null) return;
+    const point = pointFromEvent(event);
+    if (!point) return;
+    setDraftPolygon(
+      draftPolygon.map((current, index) => (index === dragIndex ? point : current)),
+    );
   }
 
   return (
@@ -341,17 +363,39 @@ function RoiCalibrator({
           <button title="Clear polygon" onClick={() => setDraftPolygon([])}>
             <Trash2 size={18} />
           </button>
+          <button
+            title="Undo last point"
+            onClick={() => setDraftPolygon(draftPolygon.slice(0, -1))}
+          >
+            <Undo2 size={18} />
+          </button>
           <button title="Save ROI" onClick={savePolygon}>
             <Save size={18} />
             Save
           </button>
         </div>
       </div>
-      <div className="canvas" onClick={addPoint}>
+      <div
+        className="canvas"
+        onPointerDown={addPoint}
+        onPointerMove={movePoint}
+        onPointerUp={() => setDragIndex(null)}
+        onPointerLeave={() => setDragIndex(null)}
+      >
         {snapshot ? (
           <>
-            <img ref={imageRef} src={imageUrl} alt="Latest greenhouse snapshot" />
-            <svg className="overlay" viewBox={`0 0 ${imageRef.current?.naturalWidth || 1} ${imageRef.current?.naturalHeight || 1}`}>
+            <img
+              ref={imageRef}
+              src={imageUrl}
+              alt="Latest greenhouse snapshot"
+              onLoad={(event) =>
+                setImageSize({
+                  width: event.currentTarget.naturalWidth || 1,
+                  height: event.currentTarget.naturalHeight || 1,
+                })
+              }
+            />
+            <svg className="overlay" viewBox={`0 0 ${imageSize.width} ${imageSize.height}`}>
               {draftPolygon.length > 1 && (
                 <polygon
                   points={draftPolygon.map((point) => `${point.x},${point.y}`).join(" ")}
@@ -359,7 +403,17 @@ function RoiCalibrator({
                 />
               )}
               {draftPolygon.map((point, index) => (
-                <circle key={`${point.x}-${point.y}-${index}`} cx={point.x} cy={point.y} r="9" />
+                <circle
+                  key={`${point.x}-${point.y}-${index}`}
+                  cx={point.x}
+                  cy={point.y}
+                  r="9"
+                  data-roi-handle
+                  onPointerDown={(event) => {
+                    event.stopPropagation();
+                    setDragIndex(index);
+                  }}
+                />
               ))}
             </svg>
           </>

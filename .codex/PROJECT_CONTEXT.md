@@ -536,6 +536,7 @@ Implemented under `frontend/`:
 * Snapshot upload control
 * Frigate ingestion button
 * ROI calibration canvas using polygons
+* ROI point add, undo, clear, drag, and save flows
 * ROI save flow via backend `PUT /api/beds/{bed_id}`
 * Metrics table
 * Recent alerts panel
@@ -599,7 +600,7 @@ Health endpoint returned:
 
 * `.codex/` was initially untracked; it is being added as project context/handover documentation.
 * No uploaded polyhouse reference image was present under `assets/reference` during implementation, so the UI supports upload and latest snapshot calibration rather than bundling a reference image.
-* ROI point editing is MVP-level: click to add points, clear, and save. Drag-to-edit vertices is not implemented yet.
+* ROI point editing is MVP-level but supports click-to-add, undo, clear, drag, and save.
 * Alert rules are initial threshold rules only and should be tuned against real greenhouse snapshots.
 * Sensor readings API/table exists for future sensors, but no sensor ingestion service is implemented yet.
 * OpenCV HSV thresholds are initial values and should be tuned against real greenhouse snapshots.

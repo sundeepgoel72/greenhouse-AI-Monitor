@@ -196,19 +196,25 @@ input {
 }
 
 .overlay {
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .roi-shape {
   fill: rgb(46 125 79 / 26%);
+  pointer-events: none;
   stroke: #f2d35d;
   stroke-width: 5;
 }
 
 circle {
+  cursor: grab;
   fill: #ffffff;
   stroke: #2e7d4f;
   stroke-width: 3;
+}
+
+circle:active {
+  cursor: grabbing;
 }
 
 .snapshot-placeholder {
