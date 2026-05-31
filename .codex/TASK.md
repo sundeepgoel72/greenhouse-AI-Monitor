@@ -79,6 +79,7 @@ Next implementation milestones:
    - Keep `.codex/PROJECT_CONTEXT.md` current.
    - Keep `.codex/HANDOVER.md` current.
    - Commit each logical milestone as `feat(p0): ...`.
+   - Done: Run frontend build checks after dashboard additions.
 
 Current known caveats:
 

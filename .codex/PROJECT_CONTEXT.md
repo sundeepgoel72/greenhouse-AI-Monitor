@@ -618,6 +618,10 @@ Health endpoint returned:
 * `09afee2 feat(p0): add project context handover`
 * `6a16e6c feat(p0): generate metric alerts`
 * `b170d14 feat(p0): improve roi polygon editing`
+* `636e15a feat(p0): update continuation tasklist`
+* `21cd2b8 feat(p0): make metric thresholds configurable`
+* `1ffd301 feat(p0): add metric history trends`
+* `c8d63b8 feat(p0): add backend metrics tests`
 
 ### Known Caveats
 
@@ -638,8 +642,7 @@ P0 vertical slice is present. Continue with hardening and field-readiness while 
 
 ### Immediate P0 Hardening Tasks
 
-1. Add frontend checks for build stability after dashboard additions.
-2. Update handover after each milestone.
+1. Update handover after each milestone.
 
 ### Calibration Tasks
 

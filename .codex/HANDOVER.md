@@ -169,6 +169,13 @@ Recent P0 commits:
 * `eff3a68 feat(p0): add greenhouse dashboard scaffold`
 * `d2ad75b feat(p0): align frigate fetcher dependencies`
 * `a888ffb feat(p0): document local mvp scaffold`
+* `09afee2 feat(p0): add project context handover`
+* `6a16e6c feat(p0): generate metric alerts`
+* `b170d14 feat(p0): improve roi polygon editing`
+* `636e15a feat(p0): update continuation tasklist`
+* `21cd2b8 feat(p0): make metric thresholds configurable`
+* `1ffd301 feat(p0): add metric history trends`
+* `c8d63b8 feat(p0): add backend metrics tests`
 
 ## Current Caveats
 
