@@ -54,6 +54,10 @@ Updated: 2026-05-31
 
 P0 MVP baseline has been implemented and committed. Continue from the current repository state.
 
+Use the real Frigate polyhouse camera key:
+
+- `RoofBigPolyhouse`
+
 Next implementation milestones:
 
 1. Configurable thresholds
@@ -84,6 +88,7 @@ Next implementation milestones:
 Current known caveats:
 
 - No real polyhouse reference image is committed.
+- Frigate camera default is `RoofBigPolyhouse`.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Sensor ingestion is not implemented yet.
 - Trend views are implemented as selected-bed dashboard sparklines.

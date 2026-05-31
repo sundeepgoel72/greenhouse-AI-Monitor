@@ -25,6 +25,7 @@ Backend:
 * Schemas in `backend/app/schemas.py`
 * CRUD helpers in `backend/app/crud.py`
 * Frigate latest snapshot fetcher in `backend/services/frigate_client.py`
+* Default Frigate camera: `RoofBigPolyhouse`
 * OpenCV polygon ROI metrics and ingestion in `backend/services/metrics_engine.py`
 * MQTT publisher in `backend/services/mqtt_publisher.py`
 * Rule-based alert generation during snapshot ingestion
@@ -105,6 +106,10 @@ ALERT_SOIL_WARNING_ABOVE=65
 Backend:
 
 * `http://localhost:8088`
+
+Frigate camera:
+
+* `RoofBigPolyhouse`
 
 Frontend:
 
@@ -188,7 +193,7 @@ Recent P0 commits:
 
 ## Recommended Next Steps
 
-1. Add real rooftop polyhouse snapshot and calibrate four bed polygons.
+1. Ingest a real `RoofBigPolyhouse` snapshot and calibrate four bed polygons.
 2. Tune HSV thresholds using actual snapshots.
 3. Add rule-based alerts for low green percentage, high yellow percentage, and high soil visibility.
 4. Add trend views for each bed.

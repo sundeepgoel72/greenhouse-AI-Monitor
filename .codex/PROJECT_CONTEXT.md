@@ -10,6 +10,10 @@ Initial deployment:
 * 4 monitored grow beds/grow bags initially
 * Expand to 12 beds later
 
+Frigate camera key for the rooftop polyhouse:
+
+* `RoofBigPolyhouse`
+
 System should identify:
 
 * Growth lagging
@@ -467,6 +471,7 @@ Implemented under `backend/`:
 * Pydantic schemas: `backend/app/schemas.py`
 * CRUD helpers: `backend/app/crud.py`
 * Frigate latest snapshot fetcher: `backend/services/frigate_client.py`
+* Default Frigate camera: `RoofBigPolyhouse`
 * OpenCV polygon ROI metrics and snapshot ingestion: `backend/services/metrics_engine.py`
 * MQTT publishing helper: `backend/services/mqtt_publisher.py`
 
@@ -646,8 +651,8 @@ P0 vertical slice is present. Continue with hardening and field-readiness while 
 
 ### Calibration Tasks
 
-1. Confirm real Frigate camera name and `FRIGATE_BASE_URL` in `.env`.
-2. Ingest/upload a current rooftop polyhouse snapshot.
+1. Confirm `FRIGATE_BASE_URL` in `.env`.
+2. Ingest a current `RoofBigPolyhouse` snapshot.
 3. Create or confirm four beds.
 4. Draw and save one polygon per bed.
 5. Run ingestion and inspect metrics for obvious threshold tuning needs.

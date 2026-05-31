@@ -14,7 +14,7 @@ Create .env
 
 ```env
 FRIGATE_BASE_URL=http://FRIGATE_IP:5000
-FRIGATE_CAMERA=rooftop_growhouse
+FRIGATE_CAMERA=RoofBigPolyhouse
 
 MQTT_HOST=192.168.1.10
 MQTT_PORT=1883
