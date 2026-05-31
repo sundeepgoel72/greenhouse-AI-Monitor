@@ -40,6 +40,7 @@ Frontend:
 * ROI point add, undo, clear, drag, and save flows
 * Metrics table
 * Recent alerts panel
+* Selected-bed green/yellow/soil trend sparklines
 * Manual observations form/list
 * Four-bed seed action
 
@@ -131,6 +132,7 @@ Snapshots and metrics:
 * `POST /api/ingest/frigate`
 * `POST /api/ingest/upload`
 * `GET /api/metrics`
+* `GET /api/beds/{bed_id}/metrics/history`
 
 Operational data:
 

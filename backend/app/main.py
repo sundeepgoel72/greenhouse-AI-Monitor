@@ -134,6 +134,29 @@ def list_metrics(
     ]
 
 
+@app.get("/api/beds/{bed_id}/metrics/history", response_model=list[schemas.MetricHistoryOut])
+def metric_history(
+    bed_id: int,
+    limit: int = Query(default=50, ge=1, le=500),
+    db: Session = Depends(get_db),
+) -> list[schemas.MetricHistoryOut]:
+    if not crud.get_bed(db, bed_id):
+        raise HTTPException(status_code=404, detail="Bed not found")
+    return [
+        schemas.MetricHistoryOut(
+            id=metric.id,
+            bed_id=metric.bed_id,
+            snapshot_id=metric.snapshot_id,
+            snapshot_timestamp=timestamp,
+            green_pct=metric.green_pct,
+            yellow_pct=metric.yellow_pct,
+            soil_pct=metric.soil_pct,
+            created_at=metric.created_at,
+        )
+        for metric, timestamp in crud.list_metric_history(db, bed_id=bed_id, limit=limit)
+    ]
+
+
 @app.get("/api/alerts", response_model=list[schemas.AlertOut])
 def list_alerts(
     limit: int = Query(default=100, ge=1, le=500), db: Session = Depends(get_db)

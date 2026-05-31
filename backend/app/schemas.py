@@ -56,6 +56,17 @@ class MetricOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class MetricHistoryOut(BaseModel):
+    id: int
+    bed_id: int
+    snapshot_id: int
+    snapshot_timestamp: datetime
+    green_pct: float
+    yellow_pct: float
+    soil_pct: float
+    created_at: datetime
+
+
 class AlertCreate(BaseModel):
     bed_id: int
     severity: Literal["info", "warning", "critical"] = "info"

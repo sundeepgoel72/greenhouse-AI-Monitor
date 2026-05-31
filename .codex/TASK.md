@@ -65,8 +65,8 @@ Next implementation milestones:
 
 2. Trends
 
-   - Add backend API for per-bed metric history.
-   - Add compact dashboard trend display for green/yellow/soil over recent snapshots.
+   - Done: Add backend API for per-bed metric history.
+   - Done: Add compact dashboard trend display for green/yellow/soil over recent snapshots.
 
 3. Tests
 
@@ -85,4 +85,4 @@ Current known caveats:
 - No real polyhouse reference image is committed.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Sensor ingestion is not implemented yet.
-- Trend views are not implemented yet.
+- Trend views are implemented as selected-bed dashboard sparklines.

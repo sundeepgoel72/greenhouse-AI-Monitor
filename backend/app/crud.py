@@ -71,6 +71,21 @@ def list_metrics(db: Session, bed_id: int | None = None, limit: int = 100) -> li
     return list(db.scalars(stmt))
 
 
+def list_metric_history(
+    db: Session, bed_id: int, limit: int = 50
+) -> list[tuple[models.Metric, datetime]]:
+    stmt = (
+        select(models.Metric, models.Snapshot.timestamp)
+        .join(models.Snapshot, models.Snapshot.id == models.Metric.snapshot_id)
+        .where(models.Metric.bed_id == bed_id)
+        .order_by(desc(models.Snapshot.timestamp))
+        .limit(limit)
+    )
+    rows = list(db.execute(stmt))
+    rows.reverse()
+    return [(metric, timestamp) for metric, timestamp in rows]
+
+
 def create_observation(
     db: Session, payload: schemas.ObservationCreate
 ) -> models.Observation:

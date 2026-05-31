@@ -39,6 +39,9 @@ type Metric = {
   soil_pct: number;
   created_at: string;
 };
+type MetricHistory = Metric & {
+  snapshot_timestamp: string;
+};
 type Observation = {
   id: number;
   bed_id: number;
@@ -70,6 +73,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 function App() {
   const [beds, setBeds] = useState<Bed[]>([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [metricHistory, setMetricHistory] = useState<MetricHistory[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -113,6 +117,16 @@ function App() {
   useEffect(() => {
     if (selectedBed) setDraftPolygon(selectedBed.polygon);
   }, [selectedBedId, beds.length]);
+
+  useEffect(() => {
+    if (!selectedBed?.id) {
+      setMetricHistory([]);
+      return;
+    }
+    api<MetricHistory[]>(`/api/beds/${selectedBed.id}/metrics/history?limit=24`)
+      .then(setMetricHistory)
+      .catch((error) => setStatus(error.message));
+  }, [selectedBed?.id, metrics.length]);
 
   async function seedBeds() {
     const defaults = [
@@ -251,6 +265,7 @@ function App() {
             />
             <aside className="side-panel">
               <AlertList alerts={alerts} beds={beds} />
+              <TrendPanel bed={selectedBed} history={metricHistory} />
               <MetricsTable beds={beds} metrics={metrics.slice(0, 12)} />
               <ObservationForm beds={beds} onSubmit={addObservation} />
               <ObservationList observations={observations} beds={beds} />
@@ -425,6 +440,60 @@ function RoiCalibrator({
         )}
       </div>
     </section>
+  );
+}
+
+function TrendPanel({ bed, history }: { bed: Bed | null; history: MetricHistory[] }) {
+  return (
+    <section className="panel">
+      <h2>Trend{bed ? ` · ${bed.name}` : ""}</h2>
+      {history.length < 2 ? (
+        <span className="muted">Need at least two snapshots</span>
+      ) : (
+        <div className="trend-stack">
+          <Sparkline label="Green" color="#2e7d4f" values={history.map((item) => item.green_pct)} />
+          <Sparkline
+            label="Yellow"
+            color="#c58c18"
+            values={history.map((item) => item.yellow_pct)}
+          />
+          <Sparkline label="Soil" color="#7b5b3a" values={history.map((item) => item.soil_pct)} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function Sparkline({
+  label,
+  color,
+  values,
+}: {
+  label: string;
+  color: string;
+  values: number[];
+}) {
+  const width = 220;
+  const height = 46;
+  const points = values
+    .map((value, index) => {
+      const x = values.length === 1 ? 0 : (index / (values.length - 1)) * width;
+      const y = height - (Math.min(Math.max(value, 0), 100) / 100) * height;
+      return `${x},${y}`;
+    })
+    .join(" ");
+  const latest = values[values.length - 1] ?? 0;
+
+  return (
+    <div className="sparkline-row">
+      <div>
+        <strong>{latest.toFixed(1)}%</strong>
+        <span>{label}</span>
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
+        <polyline points={points} fill="none" stroke={color} strokeWidth="3" />
+      </svg>
+    </div>
   );
 }
 

@@ -483,6 +483,7 @@ Implemented API surface:
 * `POST /api/ingest/frigate`
 * `POST /api/ingest/upload`
 * `GET /api/metrics`
+* `GET /api/beds/{bed_id}/metrics/history`
 * `GET /api/alerts`
 * `POST /api/alerts`
 * `GET /api/observations`
@@ -556,6 +557,7 @@ Implemented under `frontend/`:
 * ROI point add, undo, clear, drag, and save flows
 * ROI save flow via backend `PUT /api/beds/{bed_id}`
 * Metrics table
+* Selected-bed green/yellow/soil trend sparklines
 * Recent alerts panel
 * Manual observations form and recent observation list
 * Seed action to create four initial beds
@@ -635,11 +637,9 @@ P0 vertical slice is present. Continue with hardening and field-readiness while 
 
 ### Immediate P0 Hardening Tasks
 
-1. Add metrics trend API endpoints for per-bed history.
-2. Add frontend trend display for recent green/yellow/soil percentages.
-3. Add backend tests for polygon metric extraction, alert rule generation, and ingestion persistence.
-4. Add frontend checks for build stability after dashboard additions.
-5. Update handover after each milestone.
+1. Add backend tests for polygon metric extraction, alert rule generation, and ingestion persistence.
+2. Add frontend checks for build stability after dashboard additions.
+3. Update handover after each milestone.
 
 ### Calibration Tasks
 

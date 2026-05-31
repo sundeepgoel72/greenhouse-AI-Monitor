@@ -12,6 +12,7 @@ MVP implementation for Frigate snapshot based polyhouse monitoring.
 - MQTT publishing per bed
 - Rule-based metric alerts per bed
 - React ROI calibration canvas
+- Per-bed metric history and dashboard sparklines
 
 ## Quick start
 
@@ -65,6 +66,7 @@ ALERT_SOIL_WARNING_ABOVE=65
 - `POST /api/ingest/upload`
 - `GET /api/snapshots/latest`
 - `GET /api/metrics`
+- `GET /api/beds/{bed_id}/metrics/history`
 - `POST /api/observations`
 - `POST /api/alerts`
 
