@@ -16,9 +16,10 @@ from services.mqtt_publisher import MqttPublisher
 class MetricsEngine:
     def __init__(self):
         self.publisher = MqttPublisher()
+        self.thresholds = ColorThresholds.from_settings()
+        self.alert_thresholds = AlertThresholds.from_settings()
 
-    @staticmethod
-    def analyze_bed(image: np.ndarray, polygon: list[dict]) -> dict[str, float]:
+    def analyze_bed(self, image: np.ndarray, polygon: list[dict]) -> dict[str, float]:
         if len(polygon) < 3:
             return {"green_pct": 0.0, "yellow_pct": 0.0, "soil_pct": 0.0}
 
@@ -30,9 +31,11 @@ class MetricsEngine:
             return {"green_pct": 0.0, "yellow_pct": 0.0, "soil_pct": 0.0}
 
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-        green_mask = cv2.inRange(hsv, np.array([35, 35, 35]), np.array([90, 255, 255]))
-        yellow_mask = cv2.inRange(hsv, np.array([18, 45, 45]), np.array([34, 255, 255]))
-        soil_mask = cv2.inRange(hsv, np.array([5, 20, 20]), np.array([25, 210, 220]))
+        green_mask = cv2.inRange(hsv, self.thresholds.green_lower, self.thresholds.green_upper)
+        yellow_mask = cv2.inRange(
+            hsv, self.thresholds.yellow_lower, self.thresholds.yellow_upper
+        )
+        soil_mask = cv2.inRange(hsv, self.thresholds.soil_lower, self.thresholds.soil_upper)
 
         green = int(np.count_nonzero(cv2.bitwise_and(green_mask, green_mask, mask=mask)))
         yellow = int(np.count_nonzero(cv2.bitwise_and(yellow_mask, yellow_mask, mask=mask)))
@@ -49,17 +52,16 @@ class MetricsEngine:
             bed_id = result["bed_id"]
             self.publisher.publish_bed_metrics(bed_id, result)
 
-    @staticmethod
-    def generate_alerts(metric: models.Metric) -> list[tuple[str, str]]:
+    def generate_alerts(self, metric: models.Metric) -> list[tuple[str, str]]:
         alerts: list[tuple[str, str]] = []
-        if metric.green_pct < 15:
+        if metric.green_pct < self.alert_thresholds.green_critical_below:
             alerts.append(
                 (
                     "critical",
                     "Canopy coverage is very low. Inspect irrigation, light exposure, and plant establishment.",
                 )
             )
-        elif metric.green_pct < 30:
+        elif metric.green_pct < self.alert_thresholds.green_warning_below:
             alerts.append(
                 (
                     "warning",
@@ -67,14 +69,14 @@ class MetricsEngine:
                 )
             )
 
-        if metric.yellow_pct > 15:
+        if metric.yellow_pct > self.alert_thresholds.yellow_critical_above:
             alerts.append(
                 (
                     "critical",
                     "Yellowing is elevated. Inspect for nutrient deficiency, water stress, or disease symptoms.",
                 )
             )
-        elif metric.yellow_pct > 8:
+        elif metric.yellow_pct > self.alert_thresholds.yellow_warning_above:
             alerts.append(
                 (
                     "warning",
@@ -82,7 +84,7 @@ class MetricsEngine:
                 )
             )
 
-        if metric.soil_pct > 65:
+        if metric.soil_pct > self.alert_thresholds.soil_warning_above:
             alerts.append(
                 (
                     "warning",
@@ -90,6 +92,74 @@ class MetricsEngine:
                 )
             )
         return alerts
+
+
+def _hsv_triplet(value: str, name: str) -> np.ndarray:
+    parts = [part.strip() for part in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError(f"{name} must contain three comma-separated HSV values")
+    try:
+        numbers = [int(part) for part in parts]
+    except ValueError as exc:
+        raise ValueError(f"{name} must contain integer HSV values") from exc
+    if any(number < 0 or number > 255 for number in numbers):
+        raise ValueError(f"{name} HSV values must be between 0 and 255")
+    return np.array(numbers, dtype=np.uint8)
+
+
+class ColorThresholds:
+    def __init__(
+        self,
+        green_lower: np.ndarray,
+        green_upper: np.ndarray,
+        yellow_lower: np.ndarray,
+        yellow_upper: np.ndarray,
+        soil_lower: np.ndarray,
+        soil_upper: np.ndarray,
+    ):
+        self.green_lower = green_lower
+        self.green_upper = green_upper
+        self.yellow_lower = yellow_lower
+        self.yellow_upper = yellow_upper
+        self.soil_lower = soil_lower
+        self.soil_upper = soil_upper
+
+    @classmethod
+    def from_settings(cls) -> "ColorThresholds":
+        return cls(
+            green_lower=_hsv_triplet(settings.green_hsv_lower, "GREEN_HSV_LOWER"),
+            green_upper=_hsv_triplet(settings.green_hsv_upper, "GREEN_HSV_UPPER"),
+            yellow_lower=_hsv_triplet(settings.yellow_hsv_lower, "YELLOW_HSV_LOWER"),
+            yellow_upper=_hsv_triplet(settings.yellow_hsv_upper, "YELLOW_HSV_UPPER"),
+            soil_lower=_hsv_triplet(settings.soil_hsv_lower, "SOIL_HSV_LOWER"),
+            soil_upper=_hsv_triplet(settings.soil_hsv_upper, "SOIL_HSV_UPPER"),
+        )
+
+
+class AlertThresholds:
+    def __init__(
+        self,
+        green_critical_below: float,
+        green_warning_below: float,
+        yellow_critical_above: float,
+        yellow_warning_above: float,
+        soil_warning_above: float,
+    ):
+        self.green_critical_below = green_critical_below
+        self.green_warning_below = green_warning_below
+        self.yellow_critical_above = yellow_critical_above
+        self.yellow_warning_above = yellow_warning_above
+        self.soil_warning_above = soil_warning_above
+
+    @classmethod
+    def from_settings(cls) -> "AlertThresholds":
+        return cls(
+            green_critical_below=settings.alert_green_critical_below,
+            green_warning_below=settings.alert_green_warning_below,
+            yellow_critical_above=settings.alert_yellow_critical_above,
+            yellow_warning_above=settings.alert_yellow_warning_above,
+            soil_warning_above=settings.alert_soil_warning_above,
+        )
 
 
 class SnapshotIngestionService:

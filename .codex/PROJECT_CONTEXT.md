@@ -507,6 +507,15 @@ OpenCV metrics are HSV-threshold based and return:
 * `yellow_pct`
 * `soil_pct`
 
+HSV thresholds are configurable through environment variables:
+
+* `GREEN_HSV_LOWER`
+* `GREEN_HSV_UPPER`
+* `YELLOW_HSV_LOWER`
+* `YELLOW_HSV_UPPER`
+* `SOIL_HSV_LOWER`
+* `SOIL_HSV_UPPER`
+
 MQTT metrics use a topic template:
 
 * `grow/bed{id}/metrics`
@@ -520,6 +529,14 @@ Rule-based alert generation now runs during snapshot ingestion for beds with sav
 * very low or low green coverage
 * elevated yellowing
 * high soil visibility
+
+Alert thresholds are configurable through environment variables:
+
+* `ALERT_GREEN_CRITICAL_BELOW`
+* `ALERT_GREEN_WARNING_BELOW`
+* `ALERT_YELLOW_CRITICAL_ABOVE`
+* `ALERT_YELLOW_WARNING_ABOVE`
+* `ALERT_SOIL_WARNING_ABOVE`
 
 Generated alerts are persisted and published to:
 
@@ -604,9 +621,9 @@ Health endpoint returned:
 * `.codex/` was initially untracked; it is being added as project context/handover documentation.
 * No uploaded polyhouse reference image was present under `assets/reference` during implementation, so the UI supports upload and latest snapshot calibration rather than bundling a reference image.
 * ROI point editing is MVP-level but supports click-to-add, undo, clear, drag, and save.
-* Alert rules are initial threshold rules only and should be tuned against real greenhouse snapshots.
+* Alert rules are initial configurable threshold rules and should be tuned against real greenhouse snapshots.
 * Sensor readings API/table exists for future sensors, but no sensor ingestion service is implemented yet.
-* OpenCV HSV thresholds are initial values and should be tuned against real greenhouse snapshots.
+* OpenCV HSV thresholds are configurable but still need real-snapshot tuning.
 
 ---
 
@@ -618,12 +635,11 @@ P0 vertical slice is present. Continue with hardening and field-readiness while 
 
 ### Immediate P0 Hardening Tasks
 
-1. Move OpenCV HSV thresholds and alert thresholds into configuration so they can be tuned without code edits.
-2. Add metrics trend API endpoints for per-bed history.
-3. Add frontend trend display for recent green/yellow/soil percentages.
-4. Add backend tests for polygon metric extraction, alert rule generation, and ingestion persistence.
-5. Add frontend checks for build stability after dashboard additions.
-6. Update handover after each milestone.
+1. Add metrics trend API endpoints for per-bed history.
+2. Add frontend trend display for recent green/yellow/soil percentages.
+3. Add backend tests for polygon metric extraction, alert rule generation, and ingestion persistence.
+4. Add frontend checks for build stability after dashboard additions.
+5. Update handover after each milestone.
 
 ### Calibration Tasks
 

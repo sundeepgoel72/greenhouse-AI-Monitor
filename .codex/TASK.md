@@ -58,8 +58,8 @@ Next implementation milestones:
 
 1. Configurable thresholds
 
-   - Move OpenCV HSV color thresholds into backend configuration.
-   - Move alert thresholds into backend configuration.
+   - Done: Move OpenCV HSV color thresholds into backend configuration.
+   - Done: Move alert thresholds into backend configuration.
    - Keep sensible defaults for green/yellow/soil and alert severities.
    - Do not introduce ML.
 
@@ -83,6 +83,6 @@ Next implementation milestones:
 Current known caveats:
 
 - No real polyhouse reference image is committed.
-- HSV and alert thresholds are initial values and need real-snapshot tuning.
+- HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Sensor ingestion is not implemented yet.
 - Trend views are not implemented yet.

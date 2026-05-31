@@ -28,6 +28,7 @@ Backend:
 * OpenCV polygon ROI metrics and ingestion in `backend/services/metrics_engine.py`
 * MQTT publisher in `backend/services/mqtt_publisher.py`
 * Rule-based alert generation during snapshot ingestion
+* Configurable HSV and alert thresholds via `.env`
 
 Frontend:
 
@@ -79,6 +80,23 @@ Build frontend:
 ```bash
 cd frontend
 npm run build
+```
+
+Tune OpenCV and alert thresholds in `.env`:
+
+```text
+GREEN_HSV_LOWER=35,35,35
+GREEN_HSV_UPPER=90,255,255
+YELLOW_HSV_LOWER=18,45,45
+YELLOW_HSV_UPPER=34,255,255
+SOIL_HSV_LOWER=5,20,20
+SOIL_HSV_UPPER=25,210,220
+
+ALERT_GREEN_CRITICAL_BELOW=15
+ALERT_GREEN_WARNING_BELOW=30
+ALERT_YELLOW_CRITICAL_ABOVE=15
+ALERT_YELLOW_WARNING_ABOVE=8
+ALERT_SOIL_WARNING_ABOVE=65
 ```
 
 ## Runtime URLs
@@ -153,10 +171,10 @@ Recent P0 commits:
 
 * No reference polyhouse image was present in `assets/reference`, so calibration uses uploaded/latest snapshots.
 * ROI calibration supports click-to-add, undo, clear, drag, and save.
-* Alert rules are initial threshold rules and need real snapshot tuning.
+* Alert rules are initial configurable threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, but sensor ingestion is not implemented.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
-* HSV thresholds are initial values and should be tuned with real snapshots.
+* HSV thresholds are configurable but still need real-snapshot tuning.
 
 ## Recommended Next Steps
 

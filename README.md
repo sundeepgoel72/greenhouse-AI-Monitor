@@ -37,6 +37,25 @@ cp .env.example .env
 
 The frontend reads `VITE_API_BASE_URL`; by default it uses `http://localhost:8088`.
 
+## Tunable thresholds
+
+OpenCV HSV ranges and alert thresholds can be changed in `.env` without code edits:
+
+```text
+GREEN_HSV_LOWER=35,35,35
+GREEN_HSV_UPPER=90,255,255
+YELLOW_HSV_LOWER=18,45,45
+YELLOW_HSV_UPPER=34,255,255
+SOIL_HSV_LOWER=5,20,20
+SOIL_HSV_UPPER=25,210,220
+
+ALERT_GREEN_CRITICAL_BELOW=15
+ALERT_GREEN_WARNING_BELOW=30
+ALERT_YELLOW_CRITICAL_ABOVE=15
+ALERT_YELLOW_WARNING_ABOVE=8
+ALERT_SOIL_WARNING_ABOVE=65
+```
+
 ## P0 endpoints
 
 - `GET /api/beds`
