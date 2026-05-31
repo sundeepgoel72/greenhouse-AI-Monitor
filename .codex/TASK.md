@@ -45,3 +45,44 @@ Use uploaded polyhouse image as initial reference.
 Do not redesign architecture.
 
 Produce working code.
+
+---
+
+Continuation task list.
+
+Updated: 2026-05-31
+
+P0 MVP baseline has been implemented and committed. Continue from the current repository state.
+
+Next implementation milestones:
+
+1. Configurable thresholds
+
+   - Move OpenCV HSV color thresholds into backend configuration.
+   - Move alert thresholds into backend configuration.
+   - Keep sensible defaults for green/yellow/soil and alert severities.
+   - Do not introduce ML.
+
+2. Trends
+
+   - Add backend API for per-bed metric history.
+   - Add compact dashboard trend display for green/yellow/soil over recent snapshots.
+
+3. Tests
+
+   - Add focused backend tests for polygon ROI metric calculation.
+   - Add focused backend tests for alert generation thresholds.
+   - Add an ingestion persistence test if practical with a generated image fixture.
+
+4. Documentation and handover
+
+   - Keep `.codex/PROJECT_CONTEXT.md` current.
+   - Keep `.codex/HANDOVER.md` current.
+   - Commit each logical milestone as `feat(p0): ...`.
+
+Current known caveats:
+
+- No real polyhouse reference image is committed.
+- HSV and alert thresholds are initial values and need real-snapshot tuning.
+- Sensor ingestion is not implemented yet.
+- Trend views are not implemented yet.

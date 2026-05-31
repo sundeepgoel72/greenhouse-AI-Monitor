@@ -595,6 +595,9 @@ Health endpoint returned:
 * `eff3a68 feat(p0): add greenhouse dashboard scaffold`
 * `d2ad75b feat(p0): align frigate fetcher dependencies`
 * `a888ffb feat(p0): document local mvp scaffold`
+* `09afee2 feat(p0): add project context handover`
+* `6a16e6c feat(p0): generate metric alerts`
+* `b170d14 feat(p0): improve roi polygon editing`
 
 ### Known Caveats
 
@@ -604,3 +607,36 @@ Health endpoint returned:
 * Alert rules are initial threshold rules only and should be tuned against real greenhouse snapshots.
 * Sensor readings API/table exists for future sensors, but no sensor ingestion service is implemented yet.
 * OpenCV HSV thresholds are initial values and should be tuned against real greenhouse snapshots.
+
+---
+
+## Active Continuation Plan
+
+Updated: 2026-05-31
+
+P0 vertical slice is present. Continue with hardening and field-readiness while preserving the fixed architecture.
+
+### Immediate P0 Hardening Tasks
+
+1. Move OpenCV HSV thresholds and alert thresholds into configuration so they can be tuned without code edits.
+2. Add metrics trend API endpoints for per-bed history.
+3. Add frontend trend display for recent green/yellow/soil percentages.
+4. Add backend tests for polygon metric extraction, alert rule generation, and ingestion persistence.
+5. Add frontend checks for build stability after dashboard additions.
+6. Update handover after each milestone.
+
+### Calibration Tasks
+
+1. Confirm real Frigate camera name and `FRIGATE_BASE_URL` in `.env`.
+2. Ingest/upload a current rooftop polyhouse snapshot.
+3. Create or confirm four beds.
+4. Draw and save one polygon per bed.
+5. Run ingestion and inspect metrics for obvious threshold tuning needs.
+
+### Future P1 Tasks
+
+1. Sensor ingestion service for SHT31, BH1750, and soil moisture.
+2. Historical alert suppression/deduplication.
+3. Growth trend alerts based on multi-snapshot deltas.
+4. Close-up upload flow for disease/flower/fruit future diagnostics.
+5. Docker packaging after native Linux flow is stable.
