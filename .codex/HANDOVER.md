@@ -181,6 +181,8 @@ Recent P0 commits:
 * `21cd2b8 feat(p0): make metric thresholds configurable`
 * `1ffd301 feat(p0): add metric history trends`
 * `c8d63b8 feat(p0): add backend metrics tests`
+* `c51b599 feat(p0): refresh handover after hardening`
+* `7aadac0 feat(p0): use polyhouse frigate camera`
 
 ## Current Caveats
 
@@ -193,8 +195,9 @@ Recent P0 commits:
 
 ## Recommended Next Steps
 
-1. Ingest a real `RoofBigPolyhouse` snapshot and calibrate four bed polygons.
-2. Tune HSV thresholds using actual snapshots.
-3. Add rule-based alerts for low green percentage, high yellow percentage, and high soil visibility.
-4. Add trend views for each bed.
-5. Add sensor ingestion once SHT31/BH1750/soil moisture devices are connected.
+1. Ingest a real `RoofBigPolyhouse` snapshot through Frigate.
+2. Create or confirm four bed records.
+3. Calibrate and save four bed polygons in the ROI canvas.
+4. Run ingestion again and inspect green/yellow/soil metrics.
+5. Tune HSV and alert thresholds in `.env` using real snapshot results.
+6. Add sensor ingestion once SHT31/BH1750/soil moisture devices are connected.

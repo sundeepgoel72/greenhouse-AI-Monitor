@@ -84,11 +84,21 @@ Next implementation milestones:
    - Keep `.codex/HANDOVER.md` current.
    - Commit each logical milestone as `feat(p0): ...`.
    - Done: Run frontend build checks after dashboard additions.
+   - Done: Update default Frigate camera to `RoofBigPolyhouse`.
+
+5. Calibration
+
+   - Ingest a current `RoofBigPolyhouse` snapshot.
+   - Create or confirm four bed records.
+   - Draw and save four bed polygons.
+   - Run ingestion again after polygon calibration.
+   - Tune HSV and alert thresholds from real metrics.
 
 Current known caveats:
 
-- No real polyhouse reference image is committed.
 - Frigate camera default is `RoofBigPolyhouse`.
+- Frigate latest snapshot endpoint for `RoofBigPolyhouse` returned `200 image/jpeg` on HP400.
+- Bed polygons still need real calibration.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Sensor ingestion is not implemented yet.
 - Trend views are implemented as selected-bed dashboard sparklines.

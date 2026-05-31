@@ -627,6 +627,8 @@ Health endpoint returned:
 * `21cd2b8 feat(p0): make metric thresholds configurable`
 * `1ffd301 feat(p0): add metric history trends`
 * `c8d63b8 feat(p0): add backend metrics tests`
+* `c51b599 feat(p0): refresh handover after hardening`
+* `7aadac0 feat(p0): use polyhouse frigate camera`
 
 ### Known Caveats
 
@@ -651,11 +653,12 @@ P0 vertical slice is present. Continue with hardening and field-readiness while 
 
 ### Calibration Tasks
 
-1. Confirm `FRIGATE_BASE_URL` in `.env`.
-2. Ingest a current `RoofBigPolyhouse` snapshot.
+1. Confirm `FRIGATE_BASE_URL` in `.env` points to the active Frigate instance. `localhost:5000` is reachable on HP400.
+2. Ingest a current `RoofBigPolyhouse` snapshot through the dashboard or `POST /api/ingest/frigate`.
 3. Create or confirm four beds.
 4. Draw and save one polygon per bed.
 5. Run ingestion and inspect metrics for obvious threshold tuning needs.
+6. Tune HSV and alert thresholds in `.env` using the real snapshot results.
 
 ### Future P1 Tasks
 
