@@ -1,59 +1,36 @@
 # Greenhouse AI Monitor
 
-Camera + sensor based monitoring for rooftop / grow-bag vegetable systems.
+MVP implementation for Frigate snapshot based polyhouse monitoring.
 
-## MVP scope
+## Current scope
 
-Initial target:
+- FastAPI backend
+- SQLite persistence
+- Polygon ROI storage per grow bed
+- Frigate latest snapshot ingestion
+- OpenCV green/yellow/soil coverage metrics
+- MQTT publishing per bed
+- React ROI calibration canvas
 
-- 1 camera
-- 2 grow bags
-- fixed ROI based image analysis
-- soil moisture per bag
-- shared temperature / humidity
-- shared light sensor
-- MQTT output for Home Assistant
-- no ML/Hailo dependency in v0
-
-Later phases add Hailo-8 inference, plant segmentation, weed detection, disease/stress classification, and crop-specific intervention logic.
-
-## Architecture
-
-```text
-Camera / Frigate snapshot
-        ↓
-greenhouse-ai-monitor analyzer
-        ↓
-OpenCV metrics per grow bag
-        ↓
-Sensor values from MQTT
-        ↓
-Rules engine
-        ↓
-MQTT alerts / Home Assistant
-```
-
-## Run locally
+## Quick start
 
 ```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 cp .env.example .env
-docker compose up --build
+uvicorn app.main:app --host 0.0.0.0 --port 8088 --reload
 ```
 
-## MQTT topics
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Expected Frigate snapshot URL
 
 ```text
-grow/bag1/metrics
-grow/bag1/alerts
-grow/bag2/metrics
-grow/bag2/alerts
+http://<frigate-host>:5000/api/<camera_name>/latest.jpg
 ```
-
-## MVP crop setup
-
-```text
-bag1: tomato
-bag2: spinach / leafy crop
-```
-
-See `docs/ROADMAP.md` and `docs/SENSOR_PLAN.md`.
