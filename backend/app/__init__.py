@@ -1,1 +1,1 @@
-Greenhouse AI Monitor backend package
+"""Greenhouse AI Monitor backend package."""
