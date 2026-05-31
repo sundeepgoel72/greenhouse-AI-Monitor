@@ -27,6 +27,7 @@ Backend:
 * Frigate latest snapshot fetcher in `backend/services/frigate_client.py`
 * OpenCV polygon ROI metrics and ingestion in `backend/services/metrics_engine.py`
 * MQTT publisher in `backend/services/mqtt_publisher.py`
+* Rule-based alert generation during snapshot ingestion
 
 Frontend:
 
@@ -36,6 +37,7 @@ Frontend:
 * Frigate ingestion button
 * ROI polygon calibration canvas
 * Metrics table
+* Recent alerts panel
 * Manual observations form/list
 * Four-bed seed action
 
@@ -150,9 +152,9 @@ Recent P0 commits:
 
 * No reference polyhouse image was present in `assets/reference`, so calibration uses uploaded/latest snapshots.
 * ROI calibration supports click-to-add, clear, and save. Vertex drag/edit is not implemented.
-* Alert storage exists, but rule-based alert generation is not implemented.
+* Alert rules are initial threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, but sensor ingestion is not implemented.
-* MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics.
+* MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
 * HSV thresholds are initial values and should be tuned with real snapshots.
 
 ## Recommended Next Steps

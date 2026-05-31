@@ -255,11 +255,13 @@ form {
   gap: 9px;
 }
 
+.alert-list,
 .observation-list {
   display: grid;
   gap: 10px;
 }
 
+.alert,
 .observation {
   background: #f5f7f2;
   border-radius: 7px;
@@ -268,7 +270,30 @@ form {
   padding: 9px;
 }
 
+.alert {
+  border-left: 4px solid #6d7b70;
+}
+
+.alert.warning {
+  background: #fff8df;
+  border-left-color: #c58c18;
+}
+
+.alert.critical {
+  background: #fff0ee;
+  border-left-color: #c94332;
+}
+
+.alert strong {
+  text-transform: capitalize;
+}
+
+.alert span,
 .observation span {
+  color: #65736a;
+}
+
+.muted {
   color: #65736a;
 }
 

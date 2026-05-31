@@ -100,10 +100,11 @@ def get_snapshot_image(snapshot_id: int, db: Session = Depends(get_db)) -> FileR
 @app.post("/api/ingest/frigate", response_model=schemas.IngestionResult)
 def ingest_frigate(db: Session = Depends(get_db)) -> schemas.IngestionResult:
     service = SnapshotIngestionService(db)
-    snapshot, metrics = service.ingest_from_frigate(FrigateClient())
+    snapshot, metrics, alerts = service.ingest_from_frigate(FrigateClient())
     return schemas.IngestionResult(
         snapshot=snapshot_out(snapshot),
         metrics=[schemas.MetricOut.model_validate(metric) for metric in metrics],
+        alerts=[schemas.AlertOut.model_validate(alert) for alert in alerts],
     )
 
 
@@ -113,10 +114,11 @@ def ingest_upload(
     db: Session = Depends(get_db),
 ) -> schemas.IngestionResult:
     service = SnapshotIngestionService(db)
-    snapshot, metrics = service.ingest_upload(image)
+    snapshot, metrics, alerts = service.ingest_upload(image)
     return schemas.IngestionResult(
         snapshot=snapshot_out(snapshot),
         metrics=[schemas.MetricOut.model_validate(metric) for metric in metrics],
+        alerts=[schemas.AlertOut.model_validate(alert) for alert in alerts],
     )
 
 

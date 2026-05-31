@@ -56,11 +56,6 @@ class MetricOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class IngestionResult(BaseModel):
-    snapshot: SnapshotOut
-    metrics: list[MetricOut]
-
-
 class AlertCreate(BaseModel):
     bed_id: int
     severity: Literal["info", "warning", "critical"] = "info"
@@ -72,6 +67,12 @@ class AlertOut(AlertCreate):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class IngestionResult(BaseModel):
+    snapshot: SnapshotOut
+    metrics: list[MetricOut]
+    alerts: list[AlertOut] = Field(default_factory=list)
 
 
 class ObservationCreate(BaseModel):

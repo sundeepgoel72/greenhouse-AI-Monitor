@@ -10,6 +10,7 @@ MVP implementation for Frigate snapshot based polyhouse monitoring.
 - Frigate latest snapshot ingestion
 - OpenCV green/yellow/soil coverage metrics
 - MQTT publishing per bed
+- Rule-based metric alerts per bed
 - React ROI calibration canvas
 
 ## Quick start

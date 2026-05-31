@@ -49,6 +49,48 @@ class MetricsEngine:
             bed_id = result["bed_id"]
             self.publisher.publish_bed_metrics(bed_id, result)
 
+    @staticmethod
+    def generate_alerts(metric: models.Metric) -> list[tuple[str, str]]:
+        alerts: list[tuple[str, str]] = []
+        if metric.green_pct < 15:
+            alerts.append(
+                (
+                    "critical",
+                    "Canopy coverage is very low. Inspect irrigation, light exposure, and plant establishment.",
+                )
+            )
+        elif metric.green_pct < 30:
+            alerts.append(
+                (
+                    "warning",
+                    "Canopy coverage is low. Check for growth lag, watering gaps, or shading.",
+                )
+            )
+
+        if metric.yellow_pct > 15:
+            alerts.append(
+                (
+                    "critical",
+                    "Yellowing is elevated. Inspect for nutrient deficiency, water stress, or disease symptoms.",
+                )
+            )
+        elif metric.yellow_pct > 8:
+            alerts.append(
+                (
+                    "warning",
+                    "Yellowing is above the watch threshold. Inspect leaves and recent fertilizer schedule.",
+                )
+            )
+
+        if metric.soil_pct > 65:
+            alerts.append(
+                (
+                    "warning",
+                    "Soil visibility is high. Check canopy development and moisture conditions.",
+                )
+            )
+        return alerts
+
 
 class SnapshotIngestionService:
     def __init__(self, db: Session):
@@ -57,13 +99,13 @@ class SnapshotIngestionService:
 
     def ingest_from_frigate(
         self, client: FrigateClient
-    ) -> tuple[models.Snapshot, list[models.Metric]]:
+    ) -> tuple[models.Snapshot, list[models.Metric], list[models.Alert]]:
         image_path, timestamp = client.save_latest(settings.snapshot_dir)
         return self._ingest_path(image_path, timestamp)
 
     def ingest_upload(
         self, upload: UploadFile
-    ) -> tuple[models.Snapshot, list[models.Metric]]:
+    ) -> tuple[models.Snapshot, list[models.Metric], list[models.Alert]]:
         if not upload.content_type or not upload.content_type.startswith("image/"):
             raise HTTPException(status_code=400, detail="Upload must be an image")
         now = datetime.now()
@@ -76,7 +118,7 @@ class SnapshotIngestionService:
 
     def _ingest_path(
         self, image_path: Path, timestamp: datetime
-    ) -> tuple[models.Snapshot, list[models.Metric]]:
+    ) -> tuple[models.Snapshot, list[models.Metric], list[models.Alert]]:
         image = cv2.imread(str(image_path))
         if image is None:
             raise HTTPException(status_code=400, detail="Unable to decode snapshot image")
@@ -86,6 +128,7 @@ class SnapshotIngestionService:
         self.db.flush()
 
         metrics: list[models.Metric] = []
+        alerts: list[models.Alert] = []
         beds = self.db.query(models.Bed).order_by(models.Bed.id).all()
         for bed in beds:
             polygon = json.loads(bed.polygon_json or "[]")
@@ -99,6 +142,15 @@ class SnapshotIngestionService:
             )
             self.db.add(metric)
             metrics.append(metric)
+            if len(polygon) >= 3:
+                for severity, message in self.engine.generate_alerts(metric):
+                    alert = models.Alert(
+                        bed_id=bed.id,
+                        severity=severity,
+                        message=message,
+                    )
+                    self.db.add(alert)
+                    alerts.append(alert)
 
         self.db.commit()
         self.db.refresh(snapshot)
@@ -116,4 +168,15 @@ class SnapshotIngestionService:
                     "created_at": metric.created_at.isoformat(),
                 },
             )
-        return snapshot, metrics
+        for alert in alerts:
+            self.db.refresh(alert)
+            self.engine.publisher.publish_bed_alert(
+                alert.bed_id,
+                {
+                    "bed_id": alert.bed_id,
+                    "severity": alert.severity,
+                    "message": alert.message,
+                    "created_at": alert.created_at.isoformat(),
+                },
+            )
+        return snapshot, metrics, alerts

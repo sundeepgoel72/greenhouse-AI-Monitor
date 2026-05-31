@@ -45,6 +45,13 @@ type Observation = {
   note?: string | null;
   created_at: string;
 };
+type Alert = {
+  id: number;
+  bed_id: number;
+  severity: "info" | "warning" | "critical";
+  message: string;
+  created_at: string;
+};
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -62,6 +69,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 function App() {
   const [beds, setBeds] = useState<Bed[]>([]);
   const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [selectedBedId, setSelectedBedId] = useState<number | null>(null);
@@ -79,14 +87,16 @@ function App() {
   }, [metrics]);
 
   async function load() {
-    const [bedData, metricData, observationData, latestSnapshot] = await Promise.all([
+    const [bedData, metricData, alertData, observationData, latestSnapshot] = await Promise.all([
       api<Bed[]>("/api/beds"),
       api<Metric[]>("/api/metrics?limit=80"),
+      api<Alert[]>("/api/alerts?limit=20"),
       api<Observation[]>("/api/observations?limit=20"),
       api<Snapshot | null>("/api/snapshots/latest"),
     ]);
     setBeds(bedData);
     setMetrics(metricData);
+    setAlerts(alertData);
     setObservations(observationData);
     setSnapshot(latestSnapshot);
     if (!selectedBedId && bedData.length > 0) {
@@ -123,9 +133,12 @@ function App() {
 
   async function ingestFrigate() {
     setStatus("Fetching Frigate snapshot");
-    const result = await api<{ snapshot: Snapshot; metrics: Metric[] }>("/api/ingest/frigate", {
-      method: "POST",
-    });
+    const result = await api<{ snapshot: Snapshot; metrics: Metric[]; alerts: Alert[] }>(
+      "/api/ingest/frigate",
+      {
+        method: "POST",
+      },
+    );
     setSnapshot(result.snapshot);
     await load();
     setStatus("Snapshot processed");
@@ -135,10 +148,13 @@ function App() {
     const form = new FormData();
     form.append("image", file);
     setStatus("Uploading snapshot");
-    const result = await api<{ snapshot: Snapshot; metrics: Metric[] }>("/api/ingest/upload", {
-      method: "POST",
-      body: form,
-    });
+    const result = await api<{ snapshot: Snapshot; metrics: Metric[]; alerts: Alert[] }>(
+      "/api/ingest/upload",
+      {
+        method: "POST",
+        body: form,
+      },
+    );
     setSnapshot(result.snapshot);
     await load();
     setStatus("Snapshot processed");
@@ -233,6 +249,7 @@ function App() {
               savePolygon={() => savePolygon().catch((error) => setStatus(error.message))}
             />
             <aside className="side-panel">
+              <AlertList alerts={alerts} beds={beds} />
               <MetricsTable beds={beds} metrics={metrics.slice(0, 12)} />
               <ObservationForm beds={beds} onSubmit={addObservation} />
               <ObservationList observations={observations} beds={beds} />
@@ -351,6 +368,29 @@ function RoiCalibrator({
             <Camera size={30} />
             <span>No snapshot</span>
           </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AlertList({ alerts, beds }: { alerts: Alert[]; beds: Bed[] }) {
+  const bedName = (id: number) => beds.find((bed) => bed.id === id)?.name ?? `Bed ${id}`;
+  return (
+    <section className="panel">
+      <h2>Alerts</h2>
+      <div className="alert-list">
+        {alerts.length === 0 ? (
+          <span className="muted">No recent alerts</span>
+        ) : (
+          alerts.map((alert) => (
+            <div key={alert.id} className={`alert ${alert.severity}`}>
+              <strong>
+                {alert.severity} · {bedName(alert.bed_id)}
+              </strong>
+              <span>{alert.message}</span>
+            </div>
+          ))
         )}
       </div>
     </section>

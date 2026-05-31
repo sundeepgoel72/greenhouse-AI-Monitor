@@ -515,7 +515,17 @@ MQTT alerts helper exists as:
 
 * `grow/bed{id}/alerts`
 
-MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists snapshots and metrics.
+Rule-based alert generation now runs during snapshot ingestion for beds with saved polygons:
+
+* very low or low green coverage
+* elevated yellowing
+* high soil visibility
+
+Generated alerts are persisted and published to:
+
+* `grow/bed{id}/alerts`
+
+MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists snapshots, metrics, and alerts.
 
 ### Frontend
 
@@ -528,6 +538,7 @@ Implemented under `frontend/`:
 * ROI calibration canvas using polygons
 * ROI save flow via backend `PUT /api/beds/{bed_id}`
 * Metrics table
+* Recent alerts panel
 * Manual observations form and recent observation list
 * Seed action to create four initial beds
 
@@ -589,6 +600,6 @@ Health endpoint returned:
 * `.codex/` was initially untracked; it is being added as project context/handover documentation.
 * No uploaded polyhouse reference image was present under `assets/reference` during implementation, so the UI supports upload and latest snapshot calibration rather than bundling a reference image.
 * ROI point editing is MVP-level: click to add points, clear, and save. Drag-to-edit vertices is not implemented yet.
-* Alert generation rules are not implemented yet; alert persistence and MQTT alert publishing helper exist.
+* Alert rules are initial threshold rules only and should be tuned against real greenhouse snapshots.
 * Sensor readings API/table exists for future sensors, but no sensor ingestion service is implemented yet.
 * OpenCV HSV thresholds are initial values and should be tuned against real greenhouse snapshots.
