@@ -38,6 +38,12 @@ Backend tests:
 backend/.venv/bin/python -m pytest backend/tests
 ```
 
+Smoke check:
+
+```bash
+scripts/smoke_check.sh
+```
+
 Optional local environment:
 
 ```bash
@@ -45,6 +51,8 @@ cp .env.example .env
 ```
 
 The frontend reads `VITE_API_BASE_URL`; by default it uses `http://localhost:8088`.
+
+Deployment details for HP400 are in `docs/HP400_DEPLOYMENT.md`.
 
 ## Scheduled camera ingestion
 

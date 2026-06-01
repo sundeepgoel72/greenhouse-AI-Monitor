@@ -1,0 +1,16 @@
+[Unit]
+Description=Greenhouse AI Monitor frontend
+After=network-online.target greenhouse-backend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/ssd/greenhouse-AI-Monitor/frontend
+ExecStart=/usr/bin/npm run preview -- --host 0.0.0.0 --port 5173
+Restart=always
+RestartSec=5
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

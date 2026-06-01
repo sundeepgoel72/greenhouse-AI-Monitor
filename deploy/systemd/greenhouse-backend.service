@@ -1,0 +1,16 @@
+[Unit]
+Description=Greenhouse AI Monitor backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/ssd/greenhouse-AI-Monitor/backend
+ExecStart=/mnt/ssd/greenhouse-AI-Monitor/backend/.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8088
+Restart=always
+RestartSec=5
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

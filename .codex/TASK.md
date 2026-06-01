@@ -104,11 +104,20 @@ Next implementation milestones:
    - Next: Add real Home Assistant URL/token/entity mappings in `.env`.
    - Next: Add sensor-based alert rules after baseline data is collected.
 
+7. Deployment
+
+   - Done: Add native systemd service templates for backend and frontend.
+   - Done: Add install script for HP400 systemd deployment.
+   - Done: Add smoke check script.
+   - Next: Run `sudo scripts/install_systemd.sh` when ready to switch from foreground dev servers to managed services.
+
 Current known caveats:
 
 - Frigate camera default is `RoofBigPolyhouse`.
 - Frigate latest snapshot endpoint for `RoofBigPolyhouse` returned `200 image/jpeg` on HP400.
 - Bed polygons have an initial real-camera calibration and should be visually refined in the dashboard.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
-- Home Assistant sensor ingestion is implemented, but live entity mappings are not configured yet.
+- Home Assistant sensor ingestion is implemented, and BigPolyHouse temperature/humidity are configured locally in ignored `backend/.env`.
+- BigPolyHouse sensor values are currently invalid until the underlying Home Assistant/ESP source is fixed.
+- HP400 systemd deployment files are present but not installed yet.
 - Trend views are implemented as selected-bed dashboard sparklines.
