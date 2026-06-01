@@ -88,17 +88,19 @@ Next implementation milestones:
 
 5. Calibration
 
-   - Ingest a current `RoofBigPolyhouse` snapshot.
-   - Create or confirm four bed records.
-   - Draw and save four bed polygons.
-   - Run ingestion again after polygon calibration.
-   - Tune HSV and alert thresholds from real metrics.
+   - Done: Ingest a current `RoofBigPolyhouse` snapshot.
+   - Done: Create four bed records.
+   - Done: Save approximate four-bed polygons from the live camera view.
+   - Done: Run ingestion again after polygon calibration.
+   - Done: Tighten yellow HSV defaults to reduce dry-soil false positives.
+   - Next: Refine polygons in the dashboard against the live image.
+   - Next: Continue HSV and alert threshold tuning from more real metrics.
 
 Current known caveats:
 
 - Frigate camera default is `RoofBigPolyhouse`.
 - Frigate latest snapshot endpoint for `RoofBigPolyhouse` returned `200 image/jpeg` on HP400.
-- Bed polygons still need real calibration.
+- Bed polygons have an initial real-camera calibration and should be visually refined in the dashboard.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Sensor ingestion is not implemented yet.
 - Trend views are implemented as selected-bed dashboard sparklines.

@@ -89,7 +89,7 @@ Tune OpenCV and alert thresholds in `.env`:
 ```text
 GREEN_HSV_LOWER=35,35,35
 GREEN_HSV_UPPER=90,255,255
-YELLOW_HSV_LOWER=18,45,45
+YELLOW_HSV_LOWER=22,95,90
 YELLOW_HSV_UPPER=34,255,255
 SOIL_HSV_LOWER=5,20,20
 SOIL_HSV_UPPER=25,210,220
@@ -187,17 +187,39 @@ Recent P0 commits:
 ## Current Caveats
 
 * No reference polyhouse image was present in `assets/reference`, so calibration uses uploaded/latest snapshots.
+* Initial approximate polygons were saved from a real `RoofBigPolyhouse` snapshot on 2026-06-01.
 * ROI calibration supports click-to-add, undo, clear, drag, and save.
 * Alert rules are initial configurable threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, but sensor ingestion is not implemented.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
-* HSV thresholds are configurable but still need real-snapshot tuning.
+* Yellow HSV was tightened to avoid classifying dry soil as yellowing on the rooftop camera.
+
+## Latest Calibration Snapshot
+
+Captured through Frigate on 2026-06-01:
+
+* `snapshots/RoofBigPolyhouse/2026-06-01/100729.jpg`
+
+Saved approximate bed layout:
+
+* Bed 1: top-left bed
+* Bed 2: top-right bed
+* Bed 3: bottom-left bed
+* Bed 4: bottom-right bed
+
+Latest metrics after yellow HSV tuning:
+
+* Bed 1: green 56.8%, yellow 0.0%, soil 4.76%
+* Bed 2: green 11.23%, yellow 0.0%, soil 7.29%
+* Bed 3: green 48.2%, yellow 0.26%, soil 32.44%
+* Bed 4: green 33.49%, yellow 3.33%, soil 44.03%
+
+Current alert:
+
+* Bed 2 critical low canopy.
 
 ## Recommended Next Steps
 
-1. Ingest a real `RoofBigPolyhouse` snapshot through Frigate.
-2. Create or confirm four bed records.
-3. Calibrate and save four bed polygons in the ROI canvas.
-4. Run ingestion again and inspect green/yellow/soil metrics.
-5. Tune HSV and alert thresholds in `.env` using real snapshot results.
-6. Add sensor ingestion once SHT31/BH1750/soil moisture devices are connected.
+1. Confirm the approximate four-bed ROI polygons against the live dashboard image and refine as needed.
+2. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
+3. Add sensor ingestion once SHT31/BH1750/soil moisture devices are connected.

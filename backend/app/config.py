@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     green_hsv_lower: str = "35,35,35"
     green_hsv_upper: str = "90,255,255"
-    yellow_hsv_lower: str = "18,45,45"
+    yellow_hsv_lower: str = "22,95,90"
     yellow_hsv_upper: str = "34,255,255"
     soil_hsv_lower: str = "5,20,20"
     soil_hsv_upper: str = "25,210,220"
