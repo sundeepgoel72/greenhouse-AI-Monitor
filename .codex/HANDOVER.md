@@ -1,10 +1,10 @@
 # Greenhouse AI Monitor Handover
 
-Updated: 2026-05-31
+Updated: 2026-06-01
 
 ## Current State
 
-P0 MVP backend and frontend scaffold is implemented.
+P0 MVP backend and frontend are implemented, deployed on HP400 through systemd, and collecting data standalone.
 
 Architecture remains:
 
@@ -30,6 +30,7 @@ Backend:
 * MQTT publisher in `backend/services/mqtt_publisher.py`
 * Rule-based alert generation during snapshot ingestion
 * Configurable HSV and alert thresholds via `.env`
+* Scheduled Frigate and Home Assistant ingestion every `ANALYSIS_INTERVAL_SECONDS`
 
 Frontend:
 
@@ -149,6 +150,13 @@ Systemd services:
 * `greenhouse-backend.service`
 * `greenhouse-frontend.service`
 
+Service state verified on 2026-06-01:
+
+* Backend active/running since 14:38 IST.
+* Frontend active/running since 14:38 IST.
+* Smoke check passed.
+* Scheduled image metrics and sensor readings are being stored without foreground terminals.
+
 ## API Endpoints
 
 Core:
@@ -193,6 +201,8 @@ curl -s http://localhost:8088/api/health
 curl -s -I http://localhost:5173/
 curl -s -X POST http://localhost:8088/api/ingest/frigate
 scripts/smoke_check.sh
+journalctl -u greenhouse-backend.service -n 120 --no-pager
+systemctl --no-pager --full status greenhouse-backend.service greenhouse-frontend.service
 ```
 
 Backend health returned:
@@ -221,6 +231,9 @@ Recent P0 commits:
 * `3c30b0e feat(p0): calibrate polyhouse beds`
 * `4365ecf feat(p0): add home assistant sensors`
 * `feba640 feat(p0): add hp400 systemd deployment`
+* `da51c79 feat(p0): refresh calibration after camera move`
+* `a76338f feat(p0): add sensor alerts and external diagnosis`
+* `a959c5d feat(p0): add diagnosis upload and alert dedupe`
 
 ## Current Caveats
 
@@ -230,7 +243,7 @@ Recent P0 commits:
 * Alert rules are initial configurable threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, and Home Assistant ingestion is implemented for mapped numeric entities.
 * BigPolyHouse temperature/humidity entities are mapped locally in ignored `backend/.env`.
-* BigPolyHouse sensor source is fixed as of 2026-06-01; latest values were 40.1 °C and 41.3%.
+* BigPolyHouse sensor source is fixed as of 2026-06-01, but recent Home Assistant timestamps repeated and should be watched.
 * External plant/disease diagnosis is a generic API wrapper and needs provider URLs/API keys before use.
 * Dashboard diagnosis panel accepts close-up image uploads and shows provider JSON/errors.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
@@ -261,10 +274,36 @@ Current alert:
 
 * Bed 4 warning low canopy.
 
+## Standalone Collection Check
+
+Checked after systemd deployment on 2026-06-01.
+
+Recent automatic metric batches:
+
+* Snapshot 8: created at 2026-06-01 08:30 UTC.
+* Snapshot 9: created at 2026-06-01 09:00 UTC.
+* Snapshot 10: created at 2026-06-01 09:38 UTC.
+
+Latest checked metric batch, snapshot 10:
+
+* Bed 1: green 51.74%, yellow 0.68%, soil 26.51%
+* Bed 2: green 34.97%, yellow 0.03%, soil 53.05%
+* Bed 3: green 58.41%, yellow 0.75%, soil 21.91%
+* Bed 4: green 28.97%, yellow 1.76%, soil 48.57%
+
+Recent sensor values:
+
+* Temperature: 44.5 °C
+* Humidity: 34.2%
+
+Operational note:
+
+* Backend is ingesting the HA values, but the HA entity timestamps repeated around `2026-06-01T08:41:15Z`. If this continues, inspect the ESP/Home Assistant sensor update behavior.
+
 ## Recommended Next Steps
 
 1. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
 2. Add Home Assistant mappings when lux and soil moisture entities become available.
 3. Configure external plant/disease provider URLs and API keys when chosen.
 4. Add close-up upload workflow in dashboard for disease diagnosis.
-5. Install or refresh systemd services with `sudo scripts/install_systemd.sh`.
+5. Add temperature/humidity trend sparklines to the dashboard.

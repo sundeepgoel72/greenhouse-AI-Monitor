@@ -81,7 +81,7 @@ npm run preview -- --host 0.0.0.0 --port 5173
 
 ## Systemd Install
 
-Install or refresh services:
+Systemd is installed on HP400 for the current deployment. Install or refresh services:
 
 ```bash
 cd /mnt/ssd/greenhouse-AI-Monitor
@@ -132,6 +132,13 @@ The smoke check verifies:
 * Latest snapshot API
 * Sensor readings API
 * Frontend HTTP response
+
+Last verified:
+
+* 2026-06-01 after 30+ minutes of standalone runtime.
+* Backend and frontend services active.
+* Scheduled Frigate metric batches were present.
+* Home Assistant sensor readings were present.
 
 ## URLs
 
@@ -187,3 +194,4 @@ frontend/dist/
 * BigPolyHouse temperature/humidity values were fixed on 2026-06-01; latest verified values were 40.1 °C and 41.3%.
 * External plant/disease diagnosis requires provider URLs and API keys. Prefer close-up uploads for disease diagnosis; wide Frigate snapshots are best for growth/coverage trends.
 * Repeated alerts are suppressed within `ALERT_DEDUPE_MINUTES`.
+* If Home Assistant sensor timestamps repeat while backend readings continue to insert, inspect the ESP/Home Assistant sensor update path.

@@ -117,7 +117,9 @@ Next implementation milestones:
    - Done: Add native systemd service templates for backend and frontend.
    - Done: Add install script for HP400 systemd deployment.
    - Done: Add smoke check script.
-   - Next: Run `sudo scripts/install_systemd.sh` when ready to switch from foreground dev servers to managed services.
+   - Done: Install and enable `greenhouse-backend.service` and `greenhouse-frontend.service`.
+   - Done: Verify standalone collection after 30+ minutes with scheduled metric and sensor batches.
+   - Next: Monitor Home Assistant timestamp freshness.
 
 Current known caveats:
 
@@ -127,5 +129,6 @@ Current known caveats:
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Home Assistant sensor ingestion is implemented, and BigPolyHouse temperature/humidity are configured locally in ignored `backend/.env`.
 - BigPolyHouse sensor values are realistic as of 2026-06-01; latest sync returned 40.1 °C and 41.3%.
-- HP400 systemd deployment files are present but not installed yet.
+- HP400 systemd deployment is installed and services are active.
+- Home Assistant sensor timestamps repeated during the standalone check; monitor and inspect the HA/ESP update path if it persists.
 - Trend views are implemented as selected-bed dashboard sparklines.
