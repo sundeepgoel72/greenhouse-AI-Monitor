@@ -256,10 +256,12 @@ Recent P0 commits:
 * `36045ce feat(p0): add sensor freshness and roi status`
 * `96f5417 docs: add greenhouse monitor todo list`
 * `c14e54f docs: release greenhouse monitor v0.1.0`
+* `b3ec518 docs: update v0.1.0 handover`
 
 Current release:
 
 * `v0.1.0` points at `c14e54f`.
+* `master` is currently at `b3ec518`.
 * `master` and tag `v0.1.0` were pushed to GitHub.
 
 ## Current Caveats
