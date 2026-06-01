@@ -262,13 +262,15 @@ form {
 }
 
 .alert-list,
-.observation-list {
+.observation-list,
+.sensor-grid {
   display: grid;
   gap: 10px;
 }
 
 .alert,
-.observation {
+.observation,
+.sensor-reading {
   background: #f5f7f2;
   border-radius: 7px;
   display: grid;
@@ -295,8 +297,23 @@ form {
 }
 
 .alert span,
-.observation span {
+.observation span,
+.sensor-reading span,
+.sensor-reading small {
   color: #65736a;
+}
+
+.sensor-reading {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.sensor-reading strong {
+  font-size: 18px;
+  grid-row: span 2;
+}
+
+.sensor-reading small {
+  text-transform: capitalize;
 }
 
 .muted {

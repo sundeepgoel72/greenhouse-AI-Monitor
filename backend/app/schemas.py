@@ -105,3 +105,10 @@ class SensorReadingCreate(BaseModel):
     value: float
     unit: str | None = None
     timestamp: datetime | None = None
+
+
+class SensorReadingOut(SensorReadingCreate):
+    id: int
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

@@ -44,6 +44,7 @@ Frontend:
 * Selected-bed green/yellow/soil trend sparklines
 * Manual observations form/list
 * Four-bed seed action
+* Recent sensor readings panel
 
 ## Important Commands
 
@@ -99,6 +100,13 @@ ALERT_GREEN_WARNING_BELOW=30
 ALERT_YELLOW_CRITICAL_ABOVE=15
 ALERT_YELLOW_WARNING_ABOVE=8
 ALERT_SOIL_WARNING_ABOVE=65
+
+SCHEDULED_INGEST_ENABLED=true
+ANALYSIS_INTERVAL_SECONDS=1800
+
+HOME_ASSISTANT_BASE_URL=http://homeassistant.local:8123
+HOME_ASSISTANT_TOKEN=
+HOME_ASSISTANT_SENSORS=[]
 ```
 
 ## Runtime URLs
@@ -145,7 +153,9 @@ Operational data:
 * `POST /api/alerts`
 * `GET /api/observations`
 * `POST /api/observations`
+* `GET /api/sensor-readings`
 * `POST /api/sensor-readings`
+* `POST /api/sensor-readings/home-assistant`
 
 ## Verification Already Done
 
@@ -158,6 +168,7 @@ cd frontend && npm run build
 backend/.venv/bin/python -m pytest backend/tests
 curl -s http://localhost:8088/api/health
 curl -s -I http://localhost:5173/
+curl -s -X POST http://localhost:8088/api/ingest/frigate
 ```
 
 Backend health returned:
@@ -190,7 +201,8 @@ Recent P0 commits:
 * Initial approximate polygons were saved from a real `RoofBigPolyhouse` snapshot on 2026-06-01.
 * ROI calibration supports click-to-add, undo, clear, drag, and save.
 * Alert rules are initial configurable threshold rules and need real snapshot tuning.
-* Sensor readings storage exists, but sensor ingestion is not implemented.
+* Sensor readings storage exists, and Home Assistant ingestion is implemented for mapped numeric entities.
+* Home Assistant live sync needs `HOME_ASSISTANT_BASE_URL`, `HOME_ASSISTANT_TOKEN`, and `HOME_ASSISTANT_SENSORS` in `.env`.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
 * Yellow HSV was tightened to avoid classifying dry soil as yellowing on the rooftop camera.
 
@@ -222,4 +234,5 @@ Current alert:
 
 1. Confirm the approximate four-bed ROI polygons against the live dashboard image and refine as needed.
 2. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
-3. Add sensor ingestion once SHT31/BH1750/soil moisture devices are connected.
+3. Add Home Assistant entity mappings for available temperature, humidity, lux, and soil moisture sensors.
+4. Refine sensor alert rules once baseline values are collected.

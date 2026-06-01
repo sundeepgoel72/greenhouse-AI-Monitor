@@ -96,11 +96,19 @@ Next implementation milestones:
    - Next: Refine polygons in the dashboard against the live image.
    - Next: Continue HSV and alert threshold tuning from more real metrics.
 
+6. Sensor ingestion
+
+   - Done: Add generic Home Assistant sensor ingestion by mapped entity ID.
+   - Done: Add recent sensor readings API and dashboard panel.
+   - Done: Support whole-polyhouse and per-bed readings through optional `bed_id`.
+   - Next: Add real Home Assistant URL/token/entity mappings in `.env`.
+   - Next: Add sensor-based alert rules after baseline data is collected.
+
 Current known caveats:
 
 - Frigate camera default is `RoofBigPolyhouse`.
 - Frigate latest snapshot endpoint for `RoofBigPolyhouse` returned `200 image/jpeg` on HP400.
 - Bed polygons have an initial real-camera calibration and should be visually refined in the dashboard.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
-- Sensor ingestion is not implemented yet.
+- Home Assistant sensor ingestion is implemented, but live entity mappings are not configured yet.
 - Trend views are implemented as selected-bed dashboard sparklines.

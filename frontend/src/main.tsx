@@ -7,6 +7,7 @@ import {
   Leaf,
   RefreshCw,
   Save,
+  ThermometerSun,
   Trash2,
   Undo2,
   Upload,
@@ -56,6 +57,15 @@ type Alert = {
   message: string;
   created_at: string;
 };
+type SensorReading = {
+  id: number;
+  bed_id?: number | null;
+  sensor_type: string;
+  value: number;
+  unit?: string | null;
+  timestamp?: string | null;
+  created_at: string;
+};
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -76,6 +86,7 @@ function App() {
   const [metricHistory, setMetricHistory] = useState<MetricHistory[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
+  const [sensorReadings, setSensorReadings] = useState<SensorReading[]>([]);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [selectedBedId, setSelectedBedId] = useState<number | null>(null);
   const [draftPolygon, setDraftPolygon] = useState<Point[]>([]);
@@ -92,17 +103,26 @@ function App() {
   }, [metrics]);
 
   async function load() {
-    const [bedData, metricData, alertData, observationData, latestSnapshot] = await Promise.all([
+    const [
+      bedData,
+      metricData,
+      alertData,
+      observationData,
+      sensorReadingData,
+      latestSnapshot,
+    ] = await Promise.all([
       api<Bed[]>("/api/beds"),
       api<Metric[]>("/api/metrics?limit=80"),
       api<Alert[]>("/api/alerts?limit=20"),
       api<Observation[]>("/api/observations?limit=20"),
+      api<SensorReading[]>("/api/sensor-readings?limit=40"),
       api<Snapshot | null>("/api/snapshots/latest"),
     ]);
     setBeds(bedData);
     setMetrics(metricData);
     setAlerts(alertData);
     setObservations(observationData);
+    setSensorReadings(sensorReadingData);
     setSnapshot(latestSnapshot);
     if (!selectedBedId && bedData.length > 0) {
       setSelectedBedId(bedData[0].id);
@@ -186,6 +206,15 @@ function App() {
     setStatus("ROI saved");
   }
 
+  async function ingestHomeAssistant() {
+    setStatus("Syncing Home Assistant");
+    await api<SensorReading[]>("/api/sensor-readings/home-assistant", {
+      method: "POST",
+    });
+    await load();
+    setStatus("Sensors synced");
+  }
+
   async function addObservation(formData: FormData) {
     const bedId = Number(formData.get("bed_id"));
     const kind = String(formData.get("kind"));
@@ -212,6 +241,13 @@ function App() {
           <button title="Fetch Frigate snapshot" onClick={() => ingestFrigate()}>
             <Camera size={18} />
             Frigate
+          </button>
+          <button
+            title="Sync Home Assistant sensors"
+            onClick={() => ingestHomeAssistant().catch((error) => setStatus(error.message))}
+          >
+            <ThermometerSun size={18} />
+            Sensors
           </button>
           <button title="Upload snapshot" onClick={() => fileRef.current?.click()}>
             <Upload size={18} />
@@ -265,6 +301,7 @@ function App() {
             />
             <aside className="side-panel">
               <AlertList alerts={alerts} beds={beds} />
+              <SensorPanel readings={sensorReadings} beds={beds} />
               <TrendPanel bed={selectedBed} history={metricHistory} />
               <MetricsTable beds={beds} metrics={metrics.slice(0, 12)} />
               <ObservationForm beds={beds} onSubmit={addObservation} />
@@ -512,6 +549,38 @@ function AlertList({ alerts, beds }: { alerts: Alert[]; beds: Bed[] }) {
                 {alert.severity} · {bedName(alert.bed_id)}
               </strong>
               <span>{alert.message}</span>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SensorPanel({ readings, beds }: { readings: SensorReading[]; beds: Bed[] }) {
+  const bedName = (id?: number | null) =>
+    id ? beds.find((bed) => bed.id === id)?.name ?? `Bed ${id}` : "Polyhouse";
+  const latest = new Map<string, SensorReading>();
+  for (const reading of readings) {
+    const key = `${reading.bed_id ?? "site"}:${reading.sensor_type}`;
+    if (!latest.has(key)) latest.set(key, reading);
+  }
+
+  return (
+    <section className="panel">
+      <h2>Sensors</h2>
+      <div className="sensor-grid">
+        {[...latest.values()].length === 0 ? (
+          <span className="muted">No sensor readings</span>
+        ) : (
+          [...latest.values()].map((reading) => (
+            <div key={reading.id} className="sensor-reading">
+              <span>{bedName(reading.bed_id)}</span>
+              <strong>
+                {reading.value.toFixed(1)}
+                {reading.unit || ""}
+              </strong>
+              <small>{reading.sensor_type}</small>
             </div>
           ))
         )}

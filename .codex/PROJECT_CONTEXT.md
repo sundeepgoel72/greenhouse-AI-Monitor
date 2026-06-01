@@ -131,6 +131,13 @@ Future sensors:
 
 Design database to support these now.
 
+Current integration path:
+
+* Home Assistant REST API
+* Generic mapped numeric entities via `HOME_ASSISTANT_SENSORS`
+* Optional `bed_id` for per-bed sensors
+* No vendor-specific sensor assumptions in backend ingestion
+
 ---
 
 ## ROI Strategy

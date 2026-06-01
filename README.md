@@ -13,6 +13,8 @@ MVP implementation for Frigate snapshot based polyhouse monitoring.
 - Rule-based metric alerts per bed
 - React ROI calibration canvas
 - Per-bed metric history and dashboard sparklines
+- Generic Home Assistant sensor ingestion for temperature, humidity, lux, soil moisture, or other numeric entities
+- Scheduled Frigate snapshot ingestion
 
 ## Quick start
 
@@ -43,6 +45,29 @@ cp .env.example .env
 ```
 
 The frontend reads `VITE_API_BASE_URL`; by default it uses `http://localhost:8088`.
+
+## Scheduled camera ingestion
+
+The backend can ingest the Frigate snapshot on a fixed interval:
+
+```text
+SCHEDULED_INGEST_ENABLED=true
+ANALYSIS_INTERVAL_SECONDS=1800
+```
+
+The scheduler waits one full interval after backend startup before its first automatic ingestion. Manual ingestion remains available from the dashboard.
+
+## Home Assistant sensors
+
+Create a Home Assistant long-lived access token and map any numeric entities through `.env`:
+
+```text
+HOME_ASSISTANT_BASE_URL=http://homeassistant.local:8123
+HOME_ASSISTANT_TOKEN=your-long-lived-access-token
+HOME_ASSISTANT_SENSORS=[{"entity_id":"sensor.polyhouse_temperature","sensor_type":"temperature","unit":"C"},{"entity_id":"sensor.polyhouse_humidity","sensor_type":"humidity","unit":"%"},{"entity_id":"sensor.bed_1_soil_moisture","sensor_type":"soil_moisture","unit":"%","bed_id":1}]
+```
+
+Use any `sensor_type` name for other parameters, such as `lux`, `soil_moisture`, `vpd`, or `co2`. Omit `bed_id` for whole-polyhouse readings.
 
 ## Tunable thresholds
 
@@ -75,6 +100,9 @@ ALERT_SOIL_WARNING_ABOVE=65
 - `GET /api/beds/{bed_id}/metrics/history`
 - `POST /api/observations`
 - `POST /api/alerts`
+- `GET /api/sensor-readings`
+- `POST /api/sensor-readings`
+- `POST /api/sensor-readings/home-assistant`
 
 ## Expected Frigate snapshot URL
 

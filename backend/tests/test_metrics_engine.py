@@ -10,6 +10,11 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base
 from app import models
 from services.metrics_engine import MetricsEngine, SnapshotIngestionService
+from services.home_assistant_client import (
+    HomeAssistantClient,
+    HomeAssistantSensor,
+    configured_sensors,
+)
 
 
 class DummyPublisher:
@@ -86,3 +91,56 @@ def test_ingestion_persists_snapshot_metrics_alerts_and_publishes(tmp_path):
         assert publisher.metrics[0][0] == bed.id
     finally:
         db.close()
+
+
+def test_configured_home_assistant_sensors_are_generic():
+    sensors = configured_sensors(
+        '[{"entity_id":"sensor.polyhouse_temp","sensor_type":"temperature","unit":"C"},'
+        '{"entity_id":"sensor.bed_1_soil","sensor_type":"soil_moisture","unit":"%","bed_id":1}]'
+    )
+
+    assert sensors == [
+        HomeAssistantSensor(
+            entity_id="sensor.polyhouse_temp",
+            sensor_type="temperature",
+            unit="C",
+            bed_id=None,
+        ),
+        HomeAssistantSensor(
+            entity_id="sensor.bed_1_soil",
+            sensor_type="soil_moisture",
+            unit="%",
+            bed_id=1,
+        ),
+    ]
+
+
+def test_home_assistant_client_converts_numeric_state(monkeypatch):
+    class Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {
+                "state": "27.4",
+                "last_updated": "2026-06-01T04:40:00+00:00",
+                "attributes": {"unit_of_measurement": "C"},
+            }
+
+    def fake_get(url, headers, timeout):
+        assert url == "http://ha.local/api/states/sensor.temp"
+        assert headers["Authorization"] == "Bearer token"
+        assert timeout == 15
+        return Response()
+
+    monkeypatch.setattr("services.home_assistant_client.httpx.get", fake_get)
+    client = HomeAssistantClient(base_url="http://ha.local", token="token")
+
+    reading = client.read_sensor(
+        HomeAssistantSensor(entity_id="sensor.temp", sensor_type="temperature")
+    )
+
+    assert reading is not None
+    assert reading.sensor_type == "temperature"
+    assert reading.value == 27.4
+    assert reading.unit == "C"

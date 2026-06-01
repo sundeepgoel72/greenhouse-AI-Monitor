@@ -124,3 +124,17 @@ def create_sensor_reading(
     db.commit()
     db.refresh(reading)
     return reading
+
+
+def list_sensor_readings(
+    db: Session,
+    sensor_type: str | None = None,
+    bed_id: int | None = None,
+    limit: int = 100,
+) -> list[models.SensorReading]:
+    stmt = select(models.SensorReading).order_by(desc(models.SensorReading.timestamp)).limit(limit)
+    if sensor_type is not None:
+        stmt = stmt.where(models.SensorReading.sensor_type == sensor_type)
+    if bed_id is not None:
+        stmt = stmt.where(models.SensorReading.bed_id == bed_id)
+    return list(db.scalars(stmt))

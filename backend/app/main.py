@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
@@ -7,12 +9,15 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.config import settings
-from app.database import get_db, init_db
+from app.database import SessionLocal, get_db, init_db
 from services.frigate_client import FrigateClient
+from services.home_assistant_client import HomeAssistantClient
 from services.metrics_engine import SnapshotIngestionService
 
 
 app = FastAPI(title="Greenhouse AI Monitor", version="0.1.0")
+logger = logging.getLogger(__name__)
+scheduled_ingest_task: asyncio.Task | None = None
 
 origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
 app.add_middleware(
@@ -25,8 +30,45 @@ app.add_middleware(
 
 
 @app.on_event("startup")
-def startup() -> None:
+async def startup() -> None:
     init_db()
+    global scheduled_ingest_task
+    if settings.scheduled_ingest_enabled and settings.analysis_interval_seconds > 0:
+        scheduled_ingest_task = asyncio.create_task(scheduled_ingest_loop())
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    if scheduled_ingest_task:
+        scheduled_ingest_task.cancel()
+        try:
+            await scheduled_ingest_task
+        except asyncio.CancelledError:
+            pass
+
+
+async def scheduled_ingest_loop() -> None:
+    while True:
+        await asyncio.sleep(settings.analysis_interval_seconds)
+        db = SessionLocal()
+        try:
+            SnapshotIngestionService(db).ingest_from_frigate(FrigateClient())
+            logger.info("Scheduled Frigate ingestion completed")
+        except Exception:
+            logger.exception("Scheduled Frigate ingestion failed")
+        try:
+            if (
+                settings.home_assistant_base_url
+                and settings.home_assistant_token
+                and settings.home_assistant_sensors.strip()
+                and settings.home_assistant_sensors.strip() != "[]"
+            ):
+                count = len(ingest_home_assistant_sensor_readings(db))
+                logger.info("Scheduled Home Assistant sensor ingestion completed: %s", count)
+        except Exception:
+            logger.exception("Scheduled Home Assistant sensor ingestion failed")
+        finally:
+            db.close()
 
 
 def snapshot_out(snapshot: models.Snapshot) -> schemas.SnapshotOut:
@@ -195,6 +237,43 @@ def create_observation(
 @app.post("/api/sensor-readings")
 def create_sensor_reading(
     payload: schemas.SensorReadingCreate, db: Session = Depends(get_db)
-) -> dict:
+) -> schemas.SensorReadingOut:
     reading = crud.create_sensor_reading(db, payload)
-    return {"id": reading.id}
+    return schemas.SensorReadingOut.model_validate(reading)
+
+
+@app.get("/api/sensor-readings", response_model=list[schemas.SensorReadingOut])
+def list_sensor_readings(
+    sensor_type: str | None = None,
+    bed_id: int | None = None,
+    limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+) -> list[schemas.SensorReadingOut]:
+    return [
+        schemas.SensorReadingOut.model_validate(reading)
+        for reading in crud.list_sensor_readings(
+            db, sensor_type=sensor_type, bed_id=bed_id, limit=limit
+        )
+    ]
+
+
+@app.post("/api/sensor-readings/home-assistant", response_model=list[schemas.SensorReadingOut])
+def ingest_home_assistant_sensors(
+    db: Session = Depends(get_db),
+) -> list[schemas.SensorReadingOut]:
+    try:
+        readings = ingest_home_assistant_sensor_readings(db)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return [schemas.SensorReadingOut.model_validate(reading) for reading in readings]
+
+
+def ingest_home_assistant_sensor_readings(db: Session) -> list[models.SensorReading]:
+    try:
+        client = HomeAssistantClient()
+    except ValueError as exc:
+        raise ValueError(str(exc)) from exc
+    readings = []
+    for payload in client.read_configured_sensors():
+        readings.append(crud.create_sensor_reading(db, payload))
+    return readings

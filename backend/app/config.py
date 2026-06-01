@@ -25,6 +25,11 @@ class Settings(BaseSettings):
     alert_yellow_critical_above: float = 15
     alert_yellow_warning_above: float = 8
     alert_soil_warning_above: float = 65
+    analysis_interval_seconds: int = 1800
+    scheduled_ingest_enabled: bool = True
+    home_assistant_base_url: str | None = None
+    home_assistant_token: str | None = None
+    home_assistant_sensors: str = "[]"
 
 
 settings = Settings()
