@@ -112,3 +112,7 @@ class SensorReadingOut(SensorReadingCreate):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class UiConfigOut(BaseModel):
+    alert_sensor_stale_minutes: int

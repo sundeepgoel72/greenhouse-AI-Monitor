@@ -132,3 +132,29 @@ Current known caveats:
 - HP400 systemd deployment is installed and services are active.
 - Home Assistant sensor timestamps repeated during the standalone check; monitor and inspect the HA/ESP update path if it persists.
 - Trend views are implemented as selected-bed dashboard sparklines.
+
+---
+
+Add-on task list.
+
+Updated: 2026-06-01
+
+In progress: Sensor freshness, environment trends, ROI refinement.
+
+1. Home Assistant timestamp freshness
+
+   - Add dashboard freshness status for current temperature/humidity readings.
+   - Use `ALERT_SENSOR_STALE_MINUTES` / `alert_sensor_stale_minutes` as the shared stale threshold.
+   - Keep monitoring BigPolyHouse timestamp freshness; latest readings were updating normally again on 2026-06-01.
+
+2. Temperature and humidity trends
+
+   - Add dashboard sparklines for whole-polyhouse temperature and humidity.
+   - Reuse existing `GET /api/sensor-readings?limit=N`.
+   - Treat current BigPolyHouse sensors as whole-polyhouse readings because `bed_id` is null.
+
+3. ROI refinement
+
+   - Show all saved bed polygons on the calibration image.
+   - Keep the selected bed polygon editable.
+   - Add per-bed calibration status so empty or incomplete ROI polygons are visible.

@@ -90,6 +90,13 @@ def health() -> dict:
     return {"status": "ok"}
 
 
+@app.get("/api/config", response_model=schemas.UiConfigOut)
+def ui_config() -> schemas.UiConfigOut:
+    return schemas.UiConfigOut(
+        alert_sensor_stale_minutes=settings.alert_sensor_stale_minutes,
+    )
+
+
 @app.get("/api/beds", response_model=list[schemas.BedOut])
 def list_beds(db: Session = Depends(get_db)) -> list[schemas.BedOut]:
     return [crud.bed_to_schema(bed) for bed in crud.list_beds(db)]

@@ -73,6 +73,9 @@ type DiagnosisResult = {
   provider_status_code?: number;
   result?: unknown;
 };
+type UiConfig = {
+  alert_sensor_stale_minutes: number;
+};
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -94,6 +97,7 @@ function App() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [sensorReadings, setSensorReadings] = useState<SensorReading[]>([]);
+  const [uiConfig, setUiConfig] = useState<UiConfig>({ alert_sensor_stale_minutes: 60 });
   const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [selectedBedId, setSelectedBedId] = useState<number | null>(null);
@@ -118,6 +122,7 @@ function App() {
       observationData,
       sensorReadingData,
       latestSnapshot,
+      configData,
     ] = await Promise.all([
       api<Bed[]>("/api/beds"),
       api<Metric[]>("/api/metrics?limit=80"),
@@ -125,6 +130,7 @@ function App() {
       api<Observation[]>("/api/observations?limit=20"),
       api<SensorReading[]>("/api/sensor-readings?limit=40"),
       api<Snapshot | null>("/api/snapshots/latest"),
+      api<UiConfig>("/api/config"),
     ]);
     setBeds(bedData);
     setMetrics(metricData);
@@ -132,6 +138,7 @@ function App() {
     setObservations(observationData);
     setSensorReadings(sensorReadingData);
     setSnapshot(latestSnapshot);
+    setUiConfig(configData);
     if (!selectedBedId && bedData.length > 0) {
       setSelectedBedId(bedData[0].id);
       setDraftPolygon(bedData[0].polygon);
@@ -319,7 +326,12 @@ function App() {
             />
             <aside className="side-panel">
               <AlertList alerts={alerts} beds={beds} />
-              <SensorPanel readings={sensorReadings} beds={beds} />
+              <SensorPanel
+                readings={sensorReadings}
+                beds={beds}
+                staleMinutes={uiConfig.alert_sensor_stale_minutes}
+              />
+              <EnvironmentTrendPanel readings={sensorReadings} />
               <TrendPanel bed={selectedBed} history={metricHistory} />
               <MetricsTable beds={beds} metrics={metrics.slice(0, 12)} />
               <DiagnosisPanel
@@ -473,12 +485,18 @@ function RoiCalibrator({
               }
             />
             <svg className="overlay" viewBox={`0 0 ${imageSize.width} ${imageSize.height}`}>
-              {draftPolygon.length > 1 && (
-                <polygon
-                  points={draftPolygon.map((point) => `${point.x},${point.y}`).join(" ")}
-                  className="roi-shape"
-                />
-              )}
+              {beds.map((bed) => {
+                const isSelected = selectedBed?.id === bed.id;
+                const polygon = isSelected ? draftPolygon : bed.polygon;
+                if (polygon.length < 2) return null;
+                return (
+                  <polygon
+                    key={bed.id}
+                    points={polygon.map((point) => `${point.x},${point.y}`).join(" ")}
+                    className={`roi-shape ${isSelected ? "selected" : "inactive"}`}
+                  />
+                );
+              })}
               {draftPolygon.map((point, index) => (
                 <circle
                   key={`${point.x}-${point.y}-${index}`}
@@ -501,6 +519,23 @@ function RoiCalibrator({
           </div>
         )}
       </div>
+      <div className="roi-status-grid">
+        {beds.map((bed) => {
+          const isSelected = selectedBed?.id === bed.id;
+          const pointCount = isSelected ? draftPolygon.length : bed.polygon.length;
+          const calibrated = pointCount >= 3;
+          return (
+            <button
+              key={bed.id}
+              className={`roi-status ${isSelected ? "active" : ""}`}
+              onClick={() => setSelectedBedId(bed.id)}
+            >
+              <span>{bed.name}</span>
+              <strong>{calibrated ? "Calibrated" : "Needs ROI"}</strong>
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -513,13 +548,24 @@ function TrendPanel({ bed, history }: { bed: Bed | null; history: MetricHistory[
         <span className="muted">Need at least two snapshots</span>
       ) : (
         <div className="trend-stack">
-          <Sparkline label="Green" color="#2e7d4f" values={history.map((item) => item.green_pct)} />
+          <Sparkline
+            label="Green"
+            color="#2e7d4f"
+            values={history.map((item) => item.green_pct)}
+            unit="%"
+          />
           <Sparkline
             label="Yellow"
             color="#c58c18"
             values={history.map((item) => item.yellow_pct)}
+            unit="%"
           />
-          <Sparkline label="Soil" color="#7b5b3a" values={history.map((item) => item.soil_pct)} />
+          <Sparkline
+            label="Soil"
+            color="#7b5b3a"
+            values={history.map((item) => item.soil_pct)}
+            unit="%"
+          />
         </div>
       )}
     </section>
@@ -530,17 +576,25 @@ function Sparkline({
   label,
   color,
   values,
+  unit = "",
+  bounds,
 }: {
   label: string;
   color: string;
   values: number[];
+  unit?: string;
+  bounds?: { min: number; max: number };
 }) {
   const width = 220;
   const height = 46;
+  const minValue = bounds?.min ?? Math.min(...values);
+  const maxValue = bounds?.max ?? Math.max(...values);
+  const range = Math.max(maxValue - minValue, 1);
   const points = values
     .map((value, index) => {
       const x = values.length === 1 ? 0 : (index / (values.length - 1)) * width;
-      const y = height - (Math.min(Math.max(value, 0), 100) / 100) * height;
+      const normalized = Math.min(Math.max((value - minValue) / range, 0), 1);
+      const y = height - normalized * height;
       return `${x},${y}`;
     })
     .join(" ");
@@ -549,7 +603,10 @@ function Sparkline({
   return (
     <div className="sparkline-row">
       <div>
-        <strong>{latest.toFixed(1)}%</strong>
+        <strong>
+          {latest.toFixed(1)}
+          {unit}
+        </strong>
         <span>{label}</span>
       </div>
       <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
@@ -582,7 +639,15 @@ function AlertList({ alerts, beds }: { alerts: Alert[]; beds: Bed[] }) {
   );
 }
 
-function SensorPanel({ readings, beds }: { readings: SensorReading[]; beds: Bed[] }) {
+function SensorPanel({
+  readings,
+  beds,
+  staleMinutes,
+}: {
+  readings: SensorReading[];
+  beds: Bed[];
+  staleMinutes: number;
+}) {
   const bedName = (id?: number | null) =>
     id ? beds.find((bed) => bed.id === id)?.name ?? `Bed ${id}` : "Polyhouse";
   const latest = new Map<string, SensorReading>();
@@ -598,20 +663,81 @@ function SensorPanel({ readings, beds }: { readings: SensorReading[]; beds: Bed[
         {[...latest.values()].length === 0 ? (
           <span className="muted">No sensor readings</span>
         ) : (
-          [...latest.values()].map((reading) => (
-            <div key={reading.id} className="sensor-reading">
-              <span>{bedName(reading.bed_id)}</span>
-              <strong>
-                {reading.value.toFixed(1)}
-                {reading.unit || ""}
-              </strong>
-              <small>{reading.sensor_type}</small>
-            </div>
-          ))
+          [...latest.values()].map((reading) => {
+            const stale = isSensorStale(reading, staleMinutes);
+            return (
+              <div key={reading.id} className={`sensor-reading ${stale ? "stale" : "fresh"}`}>
+                <span>{bedName(reading.bed_id)}</span>
+                <strong>
+                  {reading.value.toFixed(1)}
+                  {reading.unit || ""}
+                </strong>
+                <small>{reading.sensor_type}</small>
+                <em>{stale ? "Stale" : "Fresh"}</em>
+              </div>
+            );
+          })
         )}
       </div>
     </section>
   );
+}
+
+function EnvironmentTrendPanel({ readings }: { readings: SensorReading[] }) {
+  const temperature = sensorSeries(readings, "temperature");
+  const humidity = sensorSeries(readings, "humidity");
+  const hasTrend = temperature.length >= 2 || humidity.length >= 2;
+
+  return (
+    <section className="panel">
+      <h2>Environment Trend</h2>
+      {!hasTrend ? (
+        <span className="muted">Need at least two sensor readings</span>
+      ) : (
+        <div className="trend-stack">
+          {temperature.length >= 2 && (
+            <Sparkline
+              label="Temperature"
+              color="#c94332"
+              values={temperature.map((reading) => reading.value)}
+              unit="°C"
+            />
+          )}
+          {humidity.length >= 2 && (
+            <Sparkline
+              label="Humidity"
+              color="#2f6f95"
+              values={humidity.map((reading) => reading.value)}
+              unit="%"
+              bounds={{ min: 0, max: 100 }}
+            />
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function sensorSeries(readings: SensorReading[], sensorType: string): SensorReading[] {
+  return readings
+    .filter(
+      (reading) =>
+        reading.sensor_type.toLowerCase() === sensorType && reading.bed_id == null,
+    )
+    .sort((left, right) => readingTime(left) - readingTime(right));
+}
+
+function isSensorStale(reading: SensorReading, staleMinutes: number): boolean {
+  const timestamp = readingTime(reading);
+  if (!timestamp) return true;
+  return Date.now() - timestamp > staleMinutes * 60 * 1000;
+}
+
+function readingTime(reading: SensorReading): number {
+  const raw = reading.timestamp || reading.created_at;
+  const normalized = /(?:z|[+-]\d{2}:?\d{2})$/i.test(raw) ? raw : `${raw}Z`;
+  const parsed = Date.parse(normalized);
+  return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 function MetricsTable({ beds, metrics }: { beds: Bed[]; metrics: Metric[] }) {

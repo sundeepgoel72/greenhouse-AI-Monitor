@@ -207,6 +207,16 @@ input {
   stroke-width: 5;
 }
 
+.roi-shape.inactive {
+  fill: rgb(84 99 88 / 16%);
+  stroke: rgb(226 232 223 / 78%);
+  stroke-width: 4;
+}
+
+.roi-shape.selected {
+  fill: rgb(46 125 79 / 28%);
+}
+
 circle {
   cursor: grab;
   fill: #ffffff;
@@ -224,6 +234,37 @@ circle:active {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.roi-status-grid {
+  border-top: 1px solid #e3e7e0;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 10px;
+}
+
+.roi-status {
+  align-items: start;
+  display: grid;
+  gap: 3px;
+  min-height: 58px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.roi-status.active {
+  border-color: #2e7d4f;
+  box-shadow: inset 0 0 0 1px #2e7d4f;
+}
+
+.roi-status span {
+  color: #65736a;
+  font-size: 13px;
+}
+
+.roi-status strong {
+  font-size: 14px;
 }
 
 .side-panel {
@@ -310,11 +351,33 @@ form {
 
 .sensor-reading strong {
   font-size: 18px;
-  grid-row: span 2;
+  grid-row: span 3;
 }
 
 .sensor-reading small {
   text-transform: capitalize;
+}
+
+.sensor-reading em {
+  border-radius: 999px;
+  font-size: 12px;
+  font-style: normal;
+  justify-self: start;
+  padding: 2px 8px;
+}
+
+.sensor-reading.fresh em {
+  background: #e8f4ec;
+  color: #2e7d4f;
+}
+
+.sensor-reading.stale {
+  background: #fff8df;
+}
+
+.sensor-reading.stale em {
+  background: #f4df9a;
+  color: #765313;
 }
 
 .diagnosis-result {
@@ -398,10 +461,18 @@ form {
     flex-direction: column;
     gap: 10px;
   }
+
+  .roi-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
   .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roi-status-grid {
     grid-template-columns: 1fr;
   }
 
