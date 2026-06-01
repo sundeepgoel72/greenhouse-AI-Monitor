@@ -202,16 +202,17 @@ Recent P0 commits:
 * `7aadac0 feat(p0): use polyhouse frigate camera`
 * `3c30b0e feat(p0): calibrate polyhouse beds`
 * `4365ecf feat(p0): add home assistant sensors`
+* `feba640 feat(p0): add hp400 systemd deployment`
 
 ## Current Caveats
 
 * No reference polyhouse image was present in `assets/reference`, so calibration uses uploaded/latest snapshots.
-* Initial approximate polygons were saved from a real `RoofBigPolyhouse` snapshot on 2026-06-01.
+* Polygons were recalibrated after the camera angle changed on 2026-06-01.
 * ROI calibration supports click-to-add, undo, clear, drag, and save.
 * Alert rules are initial configurable threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, and Home Assistant ingestion is implemented for mapped numeric entities.
-* Home Assistant live sync needs `HOME_ASSISTANT_BASE_URL`, `HOME_ASSISTANT_TOKEN`, and `HOME_ASSISTANT_SENSORS` in `.env`.
-* BigPolyHouse temperature/humidity entities are mapped locally, but values are currently invalid until the sensor source is fixed.
+* BigPolyHouse temperature/humidity entities are mapped locally in ignored `backend/.env`.
+* BigPolyHouse sensor source is fixed as of 2026-06-01; latest values were 40.1 °C and 41.3%.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
 * Yellow HSV was tightened to avoid classifying dry soil as yellowing on the rooftop camera.
 
@@ -220,6 +221,7 @@ Recent P0 commits:
 Captured through Frigate on 2026-06-01:
 
 * `snapshots/RoofBigPolyhouse/2026-06-01/100729.jpg`
+* `snapshots/RoofBigPolyhouse/2026-06-01/115712.jpg` after camera angle change
 
 Saved approximate bed layout:
 
@@ -228,21 +230,20 @@ Saved approximate bed layout:
 * Bed 3: bottom-left bed
 * Bed 4: bottom-right bed
 
-Latest metrics after yellow HSV tuning:
+Latest metrics after camera-angle recalibration:
 
-* Bed 1: green 56.8%, yellow 0.0%, soil 4.76%
-* Bed 2: green 11.23%, yellow 0.0%, soil 7.29%
-* Bed 3: green 48.2%, yellow 0.26%, soil 32.44%
-* Bed 4: green 33.49%, yellow 3.33%, soil 44.03%
+* Bed 1: green 76.29%, yellow 0.02%, soil 2.37%
+* Bed 2: green 41.22%, yellow 0.0%, soil 26.35%
+* Bed 3: green 49.04%, yellow 1.2%, soil 34.75%
+* Bed 4: green 26.69%, yellow 1.05%, soil 56.91%
 
 Current alert:
 
-* Bed 2 critical low canopy.
+* Bed 4 warning low canopy.
 
 ## Recommended Next Steps
 
-1. Confirm the approximate four-bed ROI polygons against the live dashboard image and refine as needed.
-2. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
-3. Add Home Assistant entity mappings for available temperature, humidity, lux, and soil moisture sensors.
-4. Refine sensor alert rules once baseline values are collected.
-5. Install or refresh systemd services with `sudo scripts/install_systemd.sh`.
+1. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
+2. Add Home Assistant mappings when lux and soil moisture entities become available.
+3. Add sensor alert rules now that BigPolyHouse temperature/humidity values are realistic.
+4. Install or refresh systemd services with `sudo scripts/install_systemd.sh`.

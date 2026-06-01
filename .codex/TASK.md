@@ -115,9 +115,9 @@ Current known caveats:
 
 - Frigate camera default is `RoofBigPolyhouse`.
 - Frigate latest snapshot endpoint for `RoofBigPolyhouse` returned `200 image/jpeg` on HP400.
-- Bed polygons have an initial real-camera calibration and should be visually refined in the dashboard.
+- Bed polygons were recalibrated after the camera angle changed on 2026-06-01.
 - HSV and alert thresholds are configurable and need real-snapshot tuning.
 - Home Assistant sensor ingestion is implemented, and BigPolyHouse temperature/humidity are configured locally in ignored `backend/.env`.
-- BigPolyHouse sensor values are currently invalid until the underlying Home Assistant/ESP source is fixed.
+- BigPolyHouse sensor values are realistic as of 2026-06-01; latest sync returned 40.1 °C and 41.3%.
 - HP400 systemd deployment files are present but not installed yet.
 - Trend views are implemented as selected-bed dashboard sparklines.

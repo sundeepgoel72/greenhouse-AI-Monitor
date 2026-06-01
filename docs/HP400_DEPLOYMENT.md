@@ -170,4 +170,4 @@ frontend/dist/
 * The scheduler waits one full `ANALYSIS_INTERVAL_SECONDS` interval after backend startup before the first automatic ingestion.
 * Manual Frigate ingestion remains available from the dashboard.
 * Home Assistant readings are ingested only when `HOME_ASSISTANT_SENSORS` is configured.
-* Current BigPolyHouse temperature/humidity values are known to be invalid until the underlying sensor source is fixed.
+* BigPolyHouse temperature/humidity values were fixed on 2026-06-01; latest verified values were 40.1 °C and 41.3%.
