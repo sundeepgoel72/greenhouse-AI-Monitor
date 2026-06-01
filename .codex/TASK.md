@@ -101,10 +101,18 @@ Next implementation milestones:
    - Done: Add generic Home Assistant sensor ingestion by mapped entity ID.
    - Done: Add recent sensor readings API and dashboard panel.
    - Done: Support whole-polyhouse and per-bed readings through optional `bed_id`.
-   - Next: Add real Home Assistant URL/token/entity mappings in `.env`.
-   - Next: Add sensor-based alert rules after baseline data is collected.
+   - Done: Add configurable high-temperature, humidity, and stale-sensor alert rules.
+   - Done: Add real Home Assistant URL/token/entity mappings in ignored `backend/.env`.
+   - Next: Tune sensor thresholds after one full day of readings.
 
-7. Deployment
+7. External diagnosis
+
+   - Done: Add generic external plant/disease identification API wrapper.
+   - Done: Add endpoint for uploaded images or latest/specific snapshots.
+   - Next: Configure concrete provider URL/API keys.
+   - Next: Add a close-up disease upload panel in the dashboard.
+
+8. Deployment
 
    - Done: Add native systemd service templates for backend and frontend.
    - Done: Add install script for HP400 systemd deployment.

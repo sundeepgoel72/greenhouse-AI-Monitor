@@ -46,6 +46,19 @@ ANALYSIS_INTERVAL_SECONDS=1800
 HOME_ASSISTANT_BASE_URL=http://192.168.1.72:8123
 HOME_ASSISTANT_TOKEN=<long-lived-token>
 HOME_ASSISTANT_SENSORS=[{"entity_id":"sensor.roofbigpolyhouse_bigpolyhouse_temperature","sensor_type":"temperature","unit":"°C"},{"entity_id":"sensor.roofbigpolyhouse_bigpolyhouse_humidity","sensor_type":"humidity","unit":"%"}]
+
+ALERT_TEMP_WARNING_ABOVE=38
+ALERT_TEMP_CRITICAL_ABOVE=45
+ALERT_HUMIDITY_WARNING_BELOW=35
+ALERT_HUMIDITY_WARNING_ABOVE=85
+ALERT_SENSOR_STALE_MINUTES=60
+
+PLANT_IDENTIFICATION_API_URL=
+PLANT_IDENTIFICATION_API_KEY=
+DISEASE_IDENTIFICATION_API_URL=
+DISEASE_IDENTIFICATION_API_KEY=
+EXTERNAL_DIAGNOSIS_API_KEY_HEADER=Api-Key
+EXTERNAL_DIAGNOSIS_IMAGE_FIELD=image
 ```
 
 ## Manual Run
@@ -171,3 +184,4 @@ frontend/dist/
 * Manual Frigate ingestion remains available from the dashboard.
 * Home Assistant readings are ingested only when `HOME_ASSISTANT_SENSORS` is configured.
 * BigPolyHouse temperature/humidity values were fixed on 2026-06-01; latest verified values were 40.1 °C and 41.3%.
+* External plant/disease diagnosis requires provider URLs and API keys. Prefer close-up uploads for disease diagnosis; wide Frigate snapshots are best for growth/coverage trends.

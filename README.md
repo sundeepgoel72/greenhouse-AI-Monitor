@@ -15,6 +15,8 @@ MVP implementation for Frigate snapshot based polyhouse monitoring.
 - Per-bed metric history and dashboard sparklines
 - Generic Home Assistant sensor ingestion for temperature, humidity, lux, soil moisture, or other numeric entities
 - Scheduled Frigate snapshot ingestion
+- Sensor-based alerts for temperature, humidity, and stale readings
+- Generic external plant/disease identification API calls
 
 ## Quick start
 
@@ -77,6 +79,21 @@ HOME_ASSISTANT_SENSORS=[{"entity_id":"sensor.polyhouse_temperature","sensor_type
 
 Use any `sensor_type` name for other parameters, such as `lux`, `soil_moisture`, `vpd`, or `co2`. Omit `bed_id` for whole-polyhouse readings.
 
+## External plant and disease identification
+
+External plant or disease APIs can be called through a generic multipart integration:
+
+```text
+PLANT_IDENTIFICATION_API_URL=
+PLANT_IDENTIFICATION_API_KEY=
+DISEASE_IDENTIFICATION_API_URL=
+DISEASE_IDENTIFICATION_API_KEY=
+EXTERNAL_DIAGNOSIS_API_KEY_HEADER=Api-Key
+EXTERNAL_DIAGNOSIS_IMAGE_FIELD=image
+```
+
+The backend posts the image file plus a JSON `context` field containing bed, latest image metrics, and latest sensor readings when `bed_id` is supplied.
+
 ## Tunable thresholds
 
 OpenCV HSV ranges and alert thresholds can be changed in `.env` without code edits:
@@ -94,6 +111,11 @@ ALERT_GREEN_WARNING_BELOW=30
 ALERT_YELLOW_CRITICAL_ABOVE=15
 ALERT_YELLOW_WARNING_ABOVE=8
 ALERT_SOIL_WARNING_ABOVE=65
+ALERT_TEMP_WARNING_ABOVE=38
+ALERT_TEMP_CRITICAL_ABOVE=45
+ALERT_HUMIDITY_WARNING_BELOW=35
+ALERT_HUMIDITY_WARNING_ABOVE=85
+ALERT_SENSOR_STALE_MINUTES=60
 ```
 
 ## P0 endpoints
@@ -111,6 +133,7 @@ ALERT_SOIL_WARNING_ABOVE=65
 - `GET /api/sensor-readings`
 - `POST /api/sensor-readings`
 - `POST /api/sensor-readings/home-assistant`
+- `POST /api/diagnostics/external`
 
 ## Expected Frigate snapshot URL
 

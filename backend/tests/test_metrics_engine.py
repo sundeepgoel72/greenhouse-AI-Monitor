@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
 import cv2
@@ -15,6 +15,8 @@ from services.home_assistant_client import (
     HomeAssistantSensor,
     configured_sensors,
 )
+from services.external_diagnosis_client import ExternalDiagnosisClient
+from services.sensor_alerts import sensor_alert_messages
 
 
 class DummyPublisher:
@@ -144,3 +146,63 @@ def test_home_assistant_client_converts_numeric_state(monkeypatch):
     assert reading.sensor_type == "temperature"
     assert reading.value == 27.4
     assert reading.unit == "C"
+
+
+def test_sensor_alerts_flag_heat_and_stale_readings():
+    reading = SimpleNamespace(
+        sensor_type="temperature",
+        value=40.5,
+        unit="°C",
+        timestamp=datetime.now(timezone.utc) - timedelta(hours=2),
+    )
+
+    alerts = sensor_alert_messages(reading)
+
+    assert (
+        "warning",
+        "Polyhouse temperature is high (40.5°C). Check ventilation and afternoon heat load.",
+    ) in alerts
+    assert (
+        "warning",
+        "temperature sensor data is stale. Check Home Assistant and sensor connectivity.",
+    ) in alerts
+
+
+def test_external_diagnosis_posts_image_with_context(monkeypatch, tmp_path):
+    image_path = tmp_path / "leaf.jpg"
+    image_path.write_bytes(b"fake image")
+
+    class Response:
+        status_code = 200
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"suggestions": [{"name": "Tomato"}]}
+
+    def fake_post(url, headers, files, data, timeout):
+        assert url == "http://plant-api.local/identify"
+        assert headers == {"Api-Key": "secret"}
+        assert "image" in files
+        assert json.loads(data["context"]) == {"crop": "Tomato"}
+        assert timeout == 45
+        return Response()
+
+    monkeypatch.setattr("services.external_diagnosis_client.httpx.post", fake_post)
+    monkeypatch.setattr(
+        "services.external_diagnosis_client.settings.plant_identification_api_url",
+        "http://plant-api.local/identify",
+    )
+    monkeypatch.setattr(
+        "services.external_diagnosis_client.settings.plant_identification_api_key",
+        "secret",
+    )
+
+    result = ExternalDiagnosisClient("plant").diagnose(image_path, {"crop": "Tomato"})
+
+    assert result == {
+        "status": "ok",
+        "provider_status_code": 200,
+        "result": {"suggestions": [{"name": "Tomato"}]},
+    }

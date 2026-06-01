@@ -30,6 +30,17 @@ class Settings(BaseSettings):
     home_assistant_base_url: str | None = None
     home_assistant_token: str | None = None
     home_assistant_sensors: str = "[]"
+    alert_temp_warning_above: float = 38
+    alert_temp_critical_above: float = 45
+    alert_humidity_warning_below: float = 35
+    alert_humidity_warning_above: float = 85
+    alert_sensor_stale_minutes: int = 60
+    plant_identification_api_url: str | None = None
+    plant_identification_api_key: str | None = None
+    disease_identification_api_url: str | None = None
+    disease_identification_api_key: str | None = None
+    external_diagnosis_api_key_header: str = "Api-Key"
+    external_diagnosis_image_field: str = "image"
 
 
 settings = Settings()

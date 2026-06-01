@@ -45,6 +45,8 @@ Frontend:
 * Manual observations form/list
 * Four-bed seed action
 * Recent sensor readings panel
+* Sensor-based alerts for high temperature, low/high humidity, and stale sensor data
+* Generic external plant/disease identification API endpoint
 
 ## Important Commands
 
@@ -100,6 +102,11 @@ ALERT_GREEN_WARNING_BELOW=30
 ALERT_YELLOW_CRITICAL_ABOVE=15
 ALERT_YELLOW_WARNING_ABOVE=8
 ALERT_SOIL_WARNING_ABOVE=65
+ALERT_TEMP_WARNING_ABOVE=38
+ALERT_TEMP_CRITICAL_ABOVE=45
+ALERT_HUMIDITY_WARNING_BELOW=35
+ALERT_HUMIDITY_WARNING_ABOVE=85
+ALERT_SENSOR_STALE_MINUTES=60
 
 SCHEDULED_INGEST_ENABLED=true
 ANALYSIS_INTERVAL_SECONDS=1800
@@ -107,6 +114,13 @@ ANALYSIS_INTERVAL_SECONDS=1800
 HOME_ASSISTANT_BASE_URL=http://homeassistant.local:8123
 HOME_ASSISTANT_TOKEN=
 HOME_ASSISTANT_SENSORS=[]
+
+PLANT_IDENTIFICATION_API_URL=
+PLANT_IDENTIFICATION_API_KEY=
+DISEASE_IDENTIFICATION_API_URL=
+DISEASE_IDENTIFICATION_API_KEY=
+EXTERNAL_DIAGNOSIS_API_KEY_HEADER=Api-Key
+EXTERNAL_DIAGNOSIS_IMAGE_FIELD=image
 ```
 
 ## Runtime URLs
@@ -161,6 +175,7 @@ Operational data:
 * `GET /api/sensor-readings`
 * `POST /api/sensor-readings`
 * `POST /api/sensor-readings/home-assistant`
+* `POST /api/diagnostics/external`
 
 ## Verification Already Done
 
@@ -213,6 +228,7 @@ Recent P0 commits:
 * Sensor readings storage exists, and Home Assistant ingestion is implemented for mapped numeric entities.
 * BigPolyHouse temperature/humidity entities are mapped locally in ignored `backend/.env`.
 * BigPolyHouse sensor source is fixed as of 2026-06-01; latest values were 40.1 °C and 41.3%.
+* External plant/disease diagnosis is a generic API wrapper and needs provider URLs/API keys before use.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
 * Yellow HSV was tightened to avoid classifying dry soil as yellowing on the rooftop camera.
 
@@ -245,5 +261,6 @@ Current alert:
 
 1. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
 2. Add Home Assistant mappings when lux and soil moisture entities become available.
-3. Add sensor alert rules now that BigPolyHouse temperature/humidity values are realistic.
-4. Install or refresh systemd services with `sudo scripts/install_systemd.sh`.
+3. Configure external plant/disease provider URLs and API keys when chosen.
+4. Add close-up upload workflow in dashboard for disease diagnosis.
+5. Install or refresh systemd services with `sudo scripts/install_systemd.sh`.

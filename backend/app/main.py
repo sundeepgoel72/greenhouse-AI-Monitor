@@ -1,8 +1,10 @@
 import asyncio
 import logging
+from datetime import datetime
 from pathlib import Path
+from typing import Literal
 
-from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -11,8 +13,11 @@ from app import crud, models, schemas
 from app.config import settings
 from app.database import SessionLocal, get_db, init_db
 from services.frigate_client import FrigateClient
+from services.external_diagnosis_client import ExternalDiagnosisClient
 from services.home_assistant_client import HomeAssistantClient
 from services.metrics_engine import SnapshotIngestionService
+from services.sensor_alerts import create_sensor_alerts
+from diagnostics.context_builder import build_context
 
 
 app = FastAPI(title="Greenhouse AI Monitor", version="0.1.0")
@@ -239,6 +244,7 @@ def create_sensor_reading(
     payload: schemas.SensorReadingCreate, db: Session = Depends(get_db)
 ) -> schemas.SensorReadingOut:
     reading = crud.create_sensor_reading(db, payload)
+    create_sensor_alerts(db, reading)
     return schemas.SensorReadingOut.model_validate(reading)
 
 
@@ -275,5 +281,79 @@ def ingest_home_assistant_sensor_readings(db: Session) -> list[models.SensorRead
         raise ValueError(str(exc)) from exc
     readings = []
     for payload in client.read_configured_sensors():
-        readings.append(crud.create_sensor_reading(db, payload))
+        reading = crud.create_sensor_reading(db, payload)
+        create_sensor_alerts(db, reading)
+        readings.append(reading)
     return readings
+
+
+@app.post("/api/diagnostics/external")
+def external_diagnosis(
+    kind: Literal["plant", "disease"] = Form(...),
+    bed_id: int | None = Form(default=None),
+    snapshot_id: int | None = Form(default=None),
+    image: UploadFile | None = File(default=None),
+    db: Session = Depends(get_db),
+) -> dict:
+    image_path = resolve_diagnosis_image(db, image=image, snapshot_id=snapshot_id)
+    context = diagnosis_context(db, bed_id)
+    try:
+        return ExternalDiagnosisClient(kind).diagnose(image_path, context)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def resolve_diagnosis_image(
+    db: Session,
+    image: UploadFile | None,
+    snapshot_id: int | None,
+) -> Path:
+    if image is not None:
+        if not image.content_type or not image.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Upload must be an image")
+        now = datetime.now()
+        suffix = Path(image.filename or "diagnosis.jpg").suffix or ".jpg"
+        out_dir = Path(settings.snapshot_dir) / "diagnostics" / now.strftime("%Y-%m-%d")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        path = out_dir / f'{now.strftime("%H%M%S%f")}{suffix}'
+        path.write_bytes(image.file.read())
+        return path
+
+    snapshot = db.get(models.Snapshot, snapshot_id) if snapshot_id else crud.get_latest_snapshot(db)
+    if not snapshot:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    path = Path(snapshot.image_path)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Snapshot file not found")
+    return path
+
+
+def diagnosis_context(db: Session, bed_id: int | None) -> dict:
+    if bed_id is None:
+        return {}
+    bed = crud.get_bed(db, bed_id)
+    if not bed:
+        raise HTTPException(status_code=404, detail="Bed not found")
+    metrics = crud.list_metrics(db, bed_id=bed_id, limit=1)
+    readings = crud.list_sensor_readings(db, limit=50)
+    sensor_map = latest_sensor_context(readings)
+    return build_context(
+        crud.bed_to_schema(bed).model_dump(),
+        schemas.MetricOut.model_validate(metrics[0]).model_dump() if metrics else {},
+        sensor_map,
+    )
+
+
+def latest_sensor_context(readings: list[models.SensorReading]) -> dict:
+    context = {}
+    for reading in readings:
+        sensor_type = reading.sensor_type.lower()
+        if sensor_type == "temperature" and "temperature_c" not in context:
+            context["temperature_c"] = reading.value
+        elif sensor_type == "humidity" and "humidity_pct" not in context:
+            context["humidity_pct"] = reading.value
+        elif sensor_type == "lux" and "lux" not in context:
+            context["lux"] = reading.value
+        elif sensor_type == "soil_moisture" and "moisture_pct" not in context:
+            context["moisture_pct"] = reading.value
+    return context
