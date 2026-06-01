@@ -4,7 +4,7 @@ Updated: 2026-06-01
 
 ## Current State
 
-P0 MVP backend and frontend are implemented, deployed on HP400 through systemd, and collecting data standalone.
+P0 MVP backend and frontend are implemented, deployed on HP400 through systemd, collecting data standalone, and released as Git tag `v0.1.0`.
 
 Architecture remains:
 
@@ -46,6 +46,10 @@ Frontend:
 * Manual observations form/list
 * Four-bed seed action
 * Recent sensor readings panel
+* Sensor freshness badges using `ALERT_SENSOR_STALE_MINUTES`
+* Whole-polyhouse temperature/humidity trend sparklines
+* ROI calibration overlay showing all saved bed polygons
+* Per-bed ROI status indicators
 * Sensor-based alerts for high temperature, low/high humidity, and stale sensor data
 * Generic external plant/disease identification API endpoint
 * Dashboard close-up diagnosis upload panel
@@ -156,12 +160,26 @@ Service state verified on 2026-06-01:
 * Frontend active/running since 14:38 IST.
 * Smoke check passed.
 * Scheduled image metrics and sensor readings are being stored without foreground terminals.
+* Regression check passed for release `v0.1.0`.
+
+Regression check:
+
+```bash
+cd /mnt/ssd/greenhouse-AI-Monitor
+scripts/regression_check.sh
+```
+
+Version details:
+
+* `docs/VERSION_0.1.0.md`
+* Git tag: `v0.1.0`
 
 ## API Endpoints
 
 Core:
 
 * `GET /api/health`
+* `GET /api/config`
 * `GET /api/beds`
 * `POST /api/beds`
 * `GET /api/beds/{bed_id}`
@@ -201,6 +219,7 @@ curl -s http://localhost:8088/api/health
 curl -s -I http://localhost:5173/
 curl -s -X POST http://localhost:8088/api/ingest/frigate
 scripts/smoke_check.sh
+scripts/regression_check.sh
 journalctl -u greenhouse-backend.service -n 120 --no-pager
 systemctl --no-pager --full status greenhouse-backend.service greenhouse-frontend.service
 ```
@@ -234,6 +253,14 @@ Recent P0 commits:
 * `da51c79 feat(p0): refresh calibration after camera move`
 * `a76338f feat(p0): add sensor alerts and external diagnosis`
 * `a959c5d feat(p0): add diagnosis upload and alert dedupe`
+* `36045ce feat(p0): add sensor freshness and roi status`
+* `96f5417 docs: add greenhouse monitor todo list`
+* `c14e54f docs: release greenhouse monitor v0.1.0`
+
+Current release:
+
+* `v0.1.0` points at `c14e54f`.
+* `master` and tag `v0.1.0` were pushed to GitHub.
 
 ## Current Caveats
 
@@ -243,7 +270,7 @@ Recent P0 commits:
 * Alert rules are initial configurable threshold rules and need real snapshot tuning.
 * Sensor readings storage exists, and Home Assistant ingestion is implemented for mapped numeric entities.
 * BigPolyHouse temperature/humidity entities are mapped locally in ignored `backend/.env`.
-* BigPolyHouse sensor source is fixed as of 2026-06-01, but recent Home Assistant timestamps repeated and should be watched.
+* BigPolyHouse sensor source is fixed as of 2026-06-01; dashboard freshness badges now make stale timestamps visible.
 * External plant/disease diagnosis is a generic API wrapper and needs provider URLs/API keys before use.
 * Dashboard diagnosis panel accepts close-up image uploads and shows provider JSON/errors.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
@@ -298,12 +325,13 @@ Recent sensor values:
 
 Operational note:
 
-* Backend is ingesting the HA values, but the HA entity timestamps repeated around `2026-06-01T08:41:15Z`. If this continues, inspect the ESP/Home Assistant sensor update behavior.
+* Backend is ingesting HA values, and the dashboard now marks sensor readings `Fresh` or `Stale` using the configured 60-minute threshold.
+* Latest regression run saw recent readings available: temperature 31.6 °C and humidity 55.5%.
 
 ## Recommended Next Steps
 
 1. Continue HSV and alert threshold tuning in `.env` using more real snapshots across lighting conditions.
-2. Add Home Assistant mappings when lux and soil moisture entities become available.
-3. Configure external plant/disease provider URLs and API keys when chosen.
-4. Add close-up upload workflow in dashboard for disease diagnosis.
-5. Add temperature/humidity trend sparklines to the dashboard.
+2. Review one full day of BigPolyHouse temperature/humidity readings and tune sensor thresholds.
+3. Add Home Assistant mappings when lux and soil moisture entities become available.
+4. Configure external plant/disease provider URLs and API keys when chosen.
+5. Expand `scripts/regression_check.sh` with dashboard/UI assertions when browser automation is added.
