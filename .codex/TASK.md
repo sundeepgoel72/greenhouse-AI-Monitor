@@ -158,3 +158,35 @@ In progress: Sensor freshness, environment trends, ROI refinement.
    - Show all saved bed polygons on the calibration image.
    - Keep the selected bed polygon editable.
    - Add per-bed calibration status so empty or incomplete ROI polygons are visible.
+
+---
+
+TODO list.
+
+Updated: 2026-06-01
+
+1. Regression test suite
+
+   - Create a repeatable regression test suite covering backend APIs, ingestion, sensor freshness, ROI persistence, and dashboard build.
+   - Include smoke-level checks for the HP400 systemd deployment.
+   - Document the command sequence in project handover notes.
+
+2. Sensor threshold tuning
+
+   - Review one full day of BigPolyHouse temperature and humidity readings.
+   - Tune high-temperature, humidity, and stale-sensor thresholds from real data.
+
+3. ROI and HSV tuning
+
+   - Recheck all bed polygons against the changed camera angle after more daylight snapshots.
+   - Tune HSV thresholds using real green/yellow/soil metrics from current camera coverage.
+
+4. External diagnosis provider setup
+
+   - Configure concrete plant identification and disease identification provider URLs/API keys.
+   - Run one upload test through the dashboard diagnosis panel.
+
+5. Additional sensors
+
+   - Add mapped Home Assistant entities for lux and soil moisture when sensors are available.
+   - Confirm whole-polyhouse versus per-bed `bed_id` mapping before enabling alerts.
