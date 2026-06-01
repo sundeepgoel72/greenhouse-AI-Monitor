@@ -52,6 +52,7 @@ ALERT_TEMP_CRITICAL_ABOVE=45
 ALERT_HUMIDITY_WARNING_BELOW=35
 ALERT_HUMIDITY_WARNING_ABOVE=85
 ALERT_SENSOR_STALE_MINUTES=60
+ALERT_DEDUPE_MINUTES=60
 
 PLANT_IDENTIFICATION_API_URL=
 PLANT_IDENTIFICATION_API_KEY=
@@ -185,3 +186,4 @@ frontend/dist/
 * Home Assistant readings are ingested only when `HOME_ASSISTANT_SENSORS` is configured.
 * BigPolyHouse temperature/humidity values were fixed on 2026-06-01; latest verified values were 40.1 °C and 41.3%.
 * External plant/disease diagnosis requires provider URLs and API keys. Prefer close-up uploads for disease diagnosis; wide Frigate snapshots are best for growth/coverage trends.
+* Repeated alerts are suppressed within `ALERT_DEDUPE_MINUTES`.

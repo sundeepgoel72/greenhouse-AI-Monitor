@@ -17,6 +17,7 @@ from services.home_assistant_client import (
 )
 from services.external_diagnosis_client import ExternalDiagnosisClient
 from services.sensor_alerts import sensor_alert_messages
+from app import crud, schemas
 
 
 class DummyPublisher:
@@ -206,3 +207,33 @@ def test_external_diagnosis_posts_image_with_context(monkeypatch, tmp_path):
         "provider_status_code": 200,
         "result": {"suggestions": [{"name": "Tomato"}]},
     }
+
+
+def test_create_alert_deduplicates_recent_identical_alerts(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'greenhouse.db'}", future=True)
+    Base.metadata.create_all(bind=engine)
+    SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+    db = SessionLocal()
+
+    try:
+        bed = models.Bed(name="Bed 1", crop="Tomato", polygon_json="[]")
+        db.add(bed)
+        db.commit()
+        payload = schemas.AlertCreate(
+            bed_id=bed.id,
+            severity="warning",
+            message="Polyhouse temperature is high (39.8°C). Check ventilation and afternoon heat load.",
+        )
+        updated_payload = schemas.AlertCreate(
+            bed_id=bed.id,
+            severity="warning",
+            message="Polyhouse temperature is high (39.9°C). Check ventilation and afternoon heat load.",
+        )
+
+        first = crud.create_alert(db, payload)
+        second = crud.create_alert(db, updated_payload)
+
+        assert first.id == second.id
+        assert db.query(models.Alert).count() == 1
+    finally:
+        db.close()

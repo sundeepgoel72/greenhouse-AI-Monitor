@@ -47,6 +47,8 @@ Frontend:
 * Recent sensor readings panel
 * Sensor-based alerts for high temperature, low/high humidity, and stale sensor data
 * Generic external plant/disease identification API endpoint
+* Dashboard close-up diagnosis upload panel
+* Repeated alert de-duplication via `ALERT_DEDUPE_MINUTES`
 
 ## Important Commands
 
@@ -107,6 +109,7 @@ ALERT_TEMP_CRITICAL_ABOVE=45
 ALERT_HUMIDITY_WARNING_BELOW=35
 ALERT_HUMIDITY_WARNING_ABOVE=85
 ALERT_SENSOR_STALE_MINUTES=60
+ALERT_DEDUPE_MINUTES=60
 
 SCHEDULED_INGEST_ENABLED=true
 ANALYSIS_INTERVAL_SECONDS=1800
@@ -229,6 +232,7 @@ Recent P0 commits:
 * BigPolyHouse temperature/humidity entities are mapped locally in ignored `backend/.env`.
 * BigPolyHouse sensor source is fixed as of 2026-06-01; latest values were 40.1 °C and 41.3%.
 * External plant/disease diagnosis is a generic API wrapper and needs provider URLs/API keys before use.
+* Dashboard diagnosis panel accepts close-up image uploads and shows provider JSON/errors.
 * MQTT publishing is best-effort. If the broker is unavailable, ingestion still persists metrics and alerts.
 * Yellow HSV was tightened to avoid classifying dry soil as yellowing on the rooftop camera.
 

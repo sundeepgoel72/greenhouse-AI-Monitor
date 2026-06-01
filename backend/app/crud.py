@@ -1,10 +1,12 @@
 import json
-from datetime import datetime
+import re
+from datetime import datetime, timedelta
 
 from sqlalchemy import desc, select
 from sqlalchemy.orm import Session
 
 from app import models, schemas
+from app.config import settings
 
 
 def bed_to_schema(bed: models.Bed) -> schemas.BedOut:
@@ -102,11 +104,42 @@ def list_observations(db: Session, limit: int = 100) -> list[models.Observation]
 
 
 def create_alert(db: Session, payload: schemas.AlertCreate) -> models.Alert:
-    alert = models.Alert(**payload.model_dump())
+    existing = find_recent_duplicate_alert(db, payload)
+    if existing:
+        return existing
+    alert = models.Alert(**payload.model_dump(), created_at=datetime.now())
     db.add(alert)
     db.commit()
     db.refresh(alert)
     return alert
+
+
+def find_recent_duplicate_alert(
+    db: Session, payload: schemas.AlertCreate
+) -> models.Alert | None:
+    if settings.alert_dedupe_minutes <= 0:
+        return None
+    cutoff = datetime.now() - timedelta(minutes=settings.alert_dedupe_minutes)
+    stmt = (
+        select(models.Alert)
+        .where(
+            models.Alert.bed_id == payload.bed_id,
+            models.Alert.severity == payload.severity,
+            models.Alert.created_at >= cutoff,
+        )
+        .order_by(desc(models.Alert.created_at))
+    )
+    fingerprint = alert_fingerprint(payload.message)
+    for alert in db.scalars(stmt):
+        if alert_fingerprint(alert.message) == fingerprint:
+            return alert
+    return None
+
+
+def alert_fingerprint(message: str) -> str:
+    normalized = re.sub(r"\([^)]*\)", "", message)
+    normalized = re.sub(r"\s+", " ", normalized).strip().lower()
+    return normalized
 
 
 def list_alerts(db: Session, limit: int = 100) -> list[models.Alert]:

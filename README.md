@@ -17,6 +17,8 @@ MVP implementation for Frigate snapshot based polyhouse monitoring.
 - Scheduled Frigate snapshot ingestion
 - Sensor-based alerts for temperature, humidity, and stale readings
 - Generic external plant/disease identification API calls
+- Dashboard close-up image upload for plant/disease diagnosis
+- Alert de-duplication window for repeated alerts
 
 ## Quick start
 
@@ -116,6 +118,7 @@ ALERT_TEMP_CRITICAL_ABOVE=45
 ALERT_HUMIDITY_WARNING_BELOW=35
 ALERT_HUMIDITY_WARNING_ABOVE=85
 ALERT_SENSOR_STALE_MINUTES=60
+ALERT_DEDUPE_MINUTES=60
 ```
 
 ## P0 endpoints

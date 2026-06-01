@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     alert_humidity_warning_below: float = 35
     alert_humidity_warning_above: float = 85
     alert_sensor_stale_minutes: int = 60
+    alert_dedupe_minutes: int = 60
     plant_identification_api_url: str | None = None
     plant_identification_api_key: str | None = None
     disease_identification_api_url: str | None = None

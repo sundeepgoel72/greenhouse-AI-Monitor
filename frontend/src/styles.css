@@ -173,6 +173,7 @@ input {
   border-radius: 7px;
   min-height: 38px;
   padding: 0 10px;
+  width: 100%;
 }
 
 .canvas {
@@ -314,6 +315,20 @@ form {
 
 .sensor-reading small {
   text-transform: capitalize;
+}
+
+.diagnosis-result {
+  background: #17211b;
+  border-radius: 7px;
+  color: #edf5ec;
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 10px 0 0;
+  max-height: 240px;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .muted {

@@ -7,6 +7,7 @@ import {
   Leaf,
   RefreshCw,
   Save,
+  Search,
   ThermometerSun,
   Trash2,
   Undo2,
@@ -66,6 +67,12 @@ type SensorReading = {
   timestamp?: string | null;
   created_at: string;
 };
+type DiagnosisResult = {
+  status?: string;
+  detail?: string;
+  provider_status_code?: number;
+  result?: unknown;
+};
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -87,6 +94,7 @@ function App() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [sensorReadings, setSensorReadings] = useState<SensorReading[]>([]);
+  const [diagnosisResult, setDiagnosisResult] = useState<DiagnosisResult | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [selectedBedId, setSelectedBedId] = useState<number | null>(null);
   const [draftPolygon, setDraftPolygon] = useState<Point[]>([]);
@@ -226,6 +234,16 @@ function App() {
     await load();
   }
 
+  async function runDiagnosis(formData: FormData) {
+    setStatus("Running diagnosis");
+    const result = await api<DiagnosisResult>("/api/diagnostics/external", {
+      method: "POST",
+      body: formData,
+    });
+    setDiagnosisResult(result);
+    setStatus("Diagnosis complete");
+  }
+
   return (
     <main>
       <header className="app-header">
@@ -304,6 +322,13 @@ function App() {
               <SensorPanel readings={sensorReadings} beds={beds} />
               <TrendPanel bed={selectedBed} history={metricHistory} />
               <MetricsTable beds={beds} metrics={metrics.slice(0, 12)} />
+              <DiagnosisPanel
+                beds={beds}
+                selectedBed={selectedBed}
+                result={diagnosisResult}
+                onSubmit={runDiagnosis}
+                onError={(message) => setStatus(message)}
+              />
               <ObservationForm beds={beds} onSubmit={addObservation} />
               <ObservationList observations={observations} beds={beds} />
             </aside>
@@ -614,6 +639,63 @@ function MetricsTable({ beds, metrics }: { beds: Bed[]; metrics: Metric[] }) {
           ))}
         </tbody>
       </table>
+    </section>
+  );
+}
+
+function DiagnosisPanel({
+  beds,
+  selectedBed,
+  result,
+  onSubmit,
+  onError,
+}: {
+  beds: Bed[];
+  selectedBed: Bed | null;
+  result: DiagnosisResult | null;
+  onSubmit: (formData: FormData) => Promise<void>;
+  onError: (message: string) => void;
+}) {
+  const formRef = useRef<HTMLFormElement>(null);
+  return (
+    <section className="panel">
+      <h2>Diagnosis</h2>
+      <form
+        ref={formRef}
+        onSubmit={(event) => {
+          event.preventDefault();
+          const form = new FormData(event.currentTarget);
+          const file = form.get("image");
+          if (!(file instanceof File) || file.size === 0) {
+            onError("Choose a close-up image");
+            return;
+          }
+          onSubmit(form).catch((error) => onError(error.message));
+        }}
+      >
+        <select name="kind" defaultValue="disease">
+          <option value="disease">Disease</option>
+          <option value="plant">Plant ID</option>
+        </select>
+        <select name="bed_id" defaultValue={selectedBed?.id ?? ""}>
+          <option value="">Polyhouse</option>
+          {beds.map((bed) => (
+            <option key={bed.id} value={bed.id}>
+              {bed.name}
+            </option>
+          ))}
+        </select>
+        <input name="image" type="file" accept="image/*" />
+        <button>
+          <Search size={18} />
+          Analyze
+        </button>
+      </form>
+      {result ? (
+        <pre className="diagnosis-result">{JSON.stringify(result, null, 2)}</pre>
+      ) : (
+        <span className="muted">No diagnosis result</span>
+      )}
     </section>
   );
 }

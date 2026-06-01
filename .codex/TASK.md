@@ -109,8 +109,8 @@ Next implementation milestones:
 
    - Done: Add generic external plant/disease identification API wrapper.
    - Done: Add endpoint for uploaded images or latest/specific snapshots.
+   - Done: Add dashboard close-up image upload panel for plant/disease diagnosis.
    - Next: Configure concrete provider URL/API keys.
-   - Next: Add a close-up disease upload panel in the dashboard.
 
 8. Deployment
 
