@@ -1,10 +1,10 @@
 # Greenhouse AI Monitor Handover
 
-Updated: 2026-06-01
+Updated: 2026-06-03
 
 ## Current State
 
-P0 MVP backend and frontend are implemented, deployed on HP400 through systemd, collecting data standalone, and released as Git tag `v0.1.0`.
+P0 MVP backend and frontend are implemented, deployed on HP400 through systemd, collecting data standalone, and rebaselined at Git tag `v0.1.1`.
 
 Architecture remains:
 
@@ -14,6 +14,30 @@ Frigate Snapshot
 → SQLite
 → MQTT
 → Dashboard
+
+## Operational Review
+
+Review date: 2026-06-03
+
+Current stored runtime data:
+
+* 74 snapshots
+* 296 metrics
+* 150 sensor readings
+* 201 alerts
+
+Findings from local sensor and image review:
+
+* Snapshot cadence is stable at about 30 minutes.
+* Daytime frames are usable for ROI-based canopy and soil estimation.
+* Night frames are monochrome IR and currently drive the HSV pipeline to all-zero metrics across all beds.
+* Snapshot analysis should only be treated as valid from 1 hour after sunrise until 1 hour before sunset.
+* Bed-level daylight metrics look plausible overall, but Bed 4 is consistently weaker than the others and needs daylight ROI review.
+* Sensor readings on 2026-06-02 show a plausible afternoon cooling trend from about `34.4 °C` / `49.7%` to `31.8 °C` / `57.8%`.
+* Sensor history still contains clear outliers from startup or source instability, including `128.4 °C` and `119.4%`.
+* Alert volume is currently dominated by repeated image alerts: 112 entries match `Canopy coverage is very low...`, which aligns with missing image-alert de-duplication plus overnight IR frames.
+* Snapshot files are being written under `backend/snapshots/...` while the database stores relative paths such as `snapshots/...`, so path resolution currently depends on backend working directory.
+* Some generated runtime paths are owned by `nobody:nogroup`, including snapshot files and `frontend/dist`, which is already interfering with local build cleanup.
 
 ## Implemented
 
@@ -54,6 +78,13 @@ Frontend:
 * Generic external plant/disease identification API endpoint
 * Dashboard close-up diagnosis upload panel
 * Repeated alert de-duplication via `ALERT_DEDUPE_MINUTES`
+
+Known implementation gaps confirmed in review:
+
+* Snapshot-based alerts bypass CRUD de-duplication and should use the same de-dupe path as sensor alerts.
+* Naive local timestamps are later interpreted as UTC in stale-reading checks and in the frontend, which can skew freshness status on non-UTC hosts.
+* Diagnosis bed selection in the React form is not fully controlled and can submit the wrong bed after the selected dashboard bed changes.
+* Snapshot ingestion lacks a daylight-validity gate even though the current overnight camera mode is not suitable for HSV analysis.
 
 ## Important Commands
 
@@ -162,6 +193,12 @@ Service state verified on 2026-06-01:
 * Scheduled image metrics and sensor readings are being stored without foreground terminals.
 * Regression check passed for release `v0.1.0`.
 
+Most recent data review highlights from 2026-06-03:
+
+* Snapshot `57` at `2026-06-02 15:09:16` is a good daylight example and shows average green coverage `73.8%`.
+* Snapshots `71` to `74` from `2026-06-02 22:09` through `23:39` show `0.0` green, yellow, and soil for every bed because the overnight camera frames are grayscale IR.
+* Any roadmap or alerting change should treat the daylight-validity window as a first-class rule, not just a threshold tweak.
+
 Regression check:
 
 ```bash
@@ -171,8 +208,8 @@ scripts/regression_check.sh
 
 Version details:
 
-* `docs/VERSION_0.1.0.md`
-* Git tag: `v0.1.0`
+* `docs/VERSION_0.1.1.md`
+* Git tag: `v0.1.1`
 
 ## API Endpoints
 
@@ -260,9 +297,8 @@ Recent P0 commits:
 
 Current release:
 
-* `v0.1.0` points at `c14e54f`.
-* `master` is currently at `b3ec518`.
-* `master` and tag `v0.1.0` were pushed to GitHub.
+* `v0.1.1` is the current operational rebaseline release.
+* `v0.1.0` remains the first standalone HP400 deployment release.
 
 ## Current Caveats
 

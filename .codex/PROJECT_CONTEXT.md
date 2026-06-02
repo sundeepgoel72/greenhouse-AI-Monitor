@@ -167,6 +167,11 @@ Current image quality is sufficient for:
 * Soil visibility %
 * Growth trend
 
+Additional runtime constraint confirmed on 2026-06-03:
+
+* Snapshot analysis is operationally useful only from 1 hour after sunrise until 1 hour before sunset.
+* Overnight `RoofBigPolyhouse` frames switch to monochrome IR, which is not suitable for the current HSV-based vision pipeline.
+
 Current image quality is NOT sufficient for:
 
 * Leaf disease diagnosis

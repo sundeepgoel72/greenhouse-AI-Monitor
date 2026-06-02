@@ -20,7 +20,7 @@ from services.sensor_alerts import create_sensor_alerts
 from diagnostics.context_builder import build_context
 
 
-app = FastAPI(title="Greenhouse AI Monitor", version="0.1.0")
+app = FastAPI(title="Greenhouse AI Monitor", version="0.1.1")
 logger = logging.getLogger(__name__)
 scheduled_ingest_task: asyncio.Task | None = None
 

@@ -163,30 +163,47 @@ In progress: Sensor freshness, environment trends, ROI refinement.
 
 TODO list.
 
-Updated: 2026-06-01
+Updated: 2026-06-03
 
-1. Regression test suite
+1. Daylight-valid snapshot gating
 
-   - Create a repeatable regression test suite covering backend APIs, ingestion, sensor freshness, ROI persistence, and dashboard build.
-   - Include smoke-level checks for the HP400 systemd deployment.
-   - Document the command sequence in project handover notes.
+   - Treat snapshot analysis as valid only from 1 hour after sunrise until 1 hour before sunset.
+   - Skip overnight HSV metric generation or mark it explicitly as invalid/non-analytic.
+   - Prevent overnight IR frames from generating misleading canopy alerts.
 
-2. Sensor threshold tuning
+2. Image-alert de-duplication
 
-   - Review one full day of BigPolyHouse temperature and humidity readings.
-   - Tune high-temperature, humidity, and stale-sensor thresholds from real data.
+   - Route snapshot-generated alerts through the same CRUD de-duplication path as sensor alerts.
+   - Clean up the repeated `Canopy coverage is very low...` flood pattern caused by recurring night ingests.
 
-3. ROI and HSV tuning
+3. Sensor data quality hardening
 
-   - Recheck all bed polygons against the changed camera angle after more daylight snapshots.
-   - Tune HSV thresholds using real green/yellow/soil metrics from current camera coverage.
+   - Review one full day of BigPolyHouse temperature and humidity readings excluding obvious startup outliers.
+   - Add validation or rejection rules for impossible sensor values such as `128.4 °C` and `119.4%`.
+   - Tune high-temperature, humidity, and stale-sensor thresholds from cleaned real data.
 
-4. External diagnosis provider setup
+4. Timestamp normalization
+
+   - Normalize stored timestamps to a single timezone-safe convention.
+   - Align backend stale-reading checks and frontend parsing so freshness calculations are correct on non-UTC hosts.
+
+5. ROI and daylight tuning
+
+   - Recheck all bed polygons against current daylight frames.
+   - Prioritize Bed 4 daylight ROI review because it lags the other beds in current average green coverage.
+   - Continue HSV tuning only on valid daylight snapshots.
+
+6. Runtime path and ownership cleanup
+
+   - Make snapshot path handling independent of backend working directory.
+   - Stop producing runtime artifacts owned by `nobody:nogroup` where that blocks builds, cleanup, or local verification.
+
+7. External diagnosis provider setup
 
    - Configure concrete plant identification and disease identification provider URLs/API keys.
    - Run one upload test through the dashboard diagnosis panel.
 
-5. Additional sensors
+8. Additional sensors
 
    - Add mapped Home Assistant entities for lux and soil moisture when sensors are available.
    - Confirm whole-polyhouse versus per-bed `bed_id` mapping before enabling alerts.
