@@ -783,36 +783,128 @@ function DiagnosisPanel({
   onError: (message: string) => void;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
+  const [kind, setKind] = useState<"disease" | "plant">("disease");
+  const [bedId, setBedId] = useState(selectedBed?.id ? String(selectedBed.id) : "");
+  const [file, setFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    setBedId(selectedBed?.id ? String(selectedBed.id) : "");
+  }, [selectedBed?.id]);
+
+  const selectedDiagnosisBed =
+    bedId === "" ? null : beds.find((bed) => String(bed.id) === bedId) ?? null;
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const nextFile = event.target.files?.[0] ?? null;
+    setFile(nextFile);
+  }
+
   return (
-    <section className="panel">
+    <section className="panel diagnosis-panel">
       <h2>Diagnosis</h2>
+      <div className="diagnosis-target">
+        <strong>
+          {selectedDiagnosisBed ? selectedDiagnosisBed.name : "Polyhouse"} close-up capture
+        </strong>
+        <span>Use the phone camera first. Fall back to gallery upload only when needed.</span>
+      </div>
       <form
         ref={formRef}
         onSubmit={(event) => {
           event.preventDefault();
-          const form = new FormData(event.currentTarget);
-          const file = form.get("image");
-          if (!(file instanceof File) || file.size === 0) {
+          if (!file) {
             onError("Choose a close-up image");
             return;
           }
-          onSubmit(form).catch((error) => onError(error.message));
+          const form = new FormData();
+          form.append("kind", kind);
+          if (bedId !== "") form.append("bed_id", bedId);
+          form.append("image", file);
+          onSubmit(form)
+            .then(() => {
+              setFile(null);
+              if (cameraInputRef.current) cameraInputRef.current.value = "";
+              if (libraryInputRef.current) libraryInputRef.current.value = "";
+            })
+            .catch((error) => onError(error.message));
         }}
       >
-        <select name="kind" defaultValue="disease">
-          <option value="disease">Disease</option>
-          <option value="plant">Plant ID</option>
-        </select>
-        <select name="bed_id" defaultValue={selectedBed?.id ?? ""}>
-          <option value="">Polyhouse</option>
+        <div className="diagnosis-kind-row">
+          <button
+            type="button"
+            className={`diagnosis-chip ${kind === "disease" ? "active" : ""}`}
+            onClick={() => setKind("disease")}
+          >
+            Disease
+          </button>
+          <button
+            type="button"
+            className={`diagnosis-chip ${kind === "plant" ? "active" : ""}`}
+            onClick={() => setKind("plant")}
+          >
+            Plant ID
+          </button>
+        </div>
+
+        <div className="diagnosis-bed-grid">
+          <button
+            type="button"
+            className={`diagnosis-chip ${bedId === "" ? "active" : ""}`}
+            onClick={() => setBedId("")}
+          >
+            Polyhouse
+          </button>
           {beds.map((bed) => (
-            <option key={bed.id} value={bed.id}>
+            <button
+              key={bed.id}
+              type="button"
+              className={`diagnosis-chip ${bedId === String(bed.id) ? "active" : ""}`}
+              onClick={() => setBedId(String(bed.id))}
+            >
               {bed.name}
-            </option>
+            </button>
           ))}
-        </select>
-        <input name="image" type="file" accept="image/*" />
-        <button>
+        </div>
+
+        <div className="diagnosis-actions">
+          <button type="button" onClick={() => cameraInputRef.current?.click()}>
+            <Camera size={18} />
+            Take Photo
+          </button>
+          <button type="button" onClick={() => libraryInputRef.current?.click()}>
+            <Upload size={18} />
+            Photo Library
+          </button>
+        </div>
+
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden
+          onChange={handleFileChange}
+        />
+        <input
+          ref={libraryInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={handleFileChange}
+        />
+
+        <div className="diagnosis-file">
+          <strong>{file ? file.name : "No image selected"}</strong>
+          <span>
+            {file
+              ? "Ready to send this close-up for diagnosis."
+              : "Select the bed, then take a close-up photo or choose one from the gallery."}
+          </span>
+        </div>
+
+        <button disabled={!file}>
           <Search size={18} />
           Analyze
         </button>

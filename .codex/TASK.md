@@ -203,6 +203,13 @@ Updated: 2026-06-03
    - Configure concrete plant identification and disease identification provider URLs/API keys.
    - Run one upload test through the dashboard diagnosis panel.
 
+7a. Mobile-first close-up capture flow
+
+   - Done: Fix the diagnosis `bed_id` binding bug in the dashboard.
+   - Done: Make the close-up upload flow work well in a phone browser.
+   - Done: Add an explicit per-bed `capture close-up` browser-first flow using the existing web app.
+   - Keep native mobile app work deferred until the browser workflow proves insufficient.
+
 8. Additional sensors
 
    - Add mapped Home Assistant entities for lux and soil moisture when sensors are available.

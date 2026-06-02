@@ -39,6 +39,11 @@ button:hover {
   border-color: #779178;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 main {
   margin: 0 auto;
   max-width: 1440px;
@@ -394,6 +399,60 @@ form {
   word-break: break-word;
 }
 
+.diagnosis-panel form {
+  gap: 12px;
+}
+
+.diagnosis-target,
+.diagnosis-file {
+  background: #f5f7f2;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.diagnosis-target strong,
+.diagnosis-file strong {
+  font-size: 14px;
+}
+
+.diagnosis-target span,
+.diagnosis-file span {
+  color: #65736a;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.diagnosis-kind-row,
+.diagnosis-bed-grid,
+.diagnosis-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.diagnosis-kind-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.diagnosis-bed-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.diagnosis-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.diagnosis-chip {
+  justify-content: center;
+  text-align: center;
+}
+
+.diagnosis-chip.active {
+  border-color: #2e7d4f;
+  box-shadow: inset 0 0 0 1px #2e7d4f;
+}
+
 .muted {
   color: #65736a;
 }
@@ -480,5 +539,10 @@ form {
   .toolbar button {
     flex: 1;
     justify-content: center;
+  }
+
+  .diagnosis-bed-grid,
+  .diagnosis-actions {
+    grid-template-columns: 1fr;
   }
 }

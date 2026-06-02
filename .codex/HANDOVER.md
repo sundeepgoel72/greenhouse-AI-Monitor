@@ -77,14 +77,22 @@ Frontend:
 * Sensor-based alerts for high temperature, low/high humidity, and stale sensor data
 * Generic external plant/disease identification API endpoint
 * Dashboard close-up diagnosis upload panel
+* Browser-first mobile diagnosis capture flow with bed chips, camera capture, and gallery fallback
 * Repeated alert de-duplication via `ALERT_DEDUPE_MINUTES`
 
 Known implementation gaps confirmed in review:
 
 * Snapshot-based alerts bypass CRUD de-duplication and should use the same de-dupe path as sensor alerts.
 * Naive local timestamps are later interpreted as UTC in stale-reading checks and in the frontend, which can skew freshness status on non-UTC hosts.
-* Diagnosis bed selection in the React form is not fully controlled and can submit the wrong bed after the selected dashboard bed changes.
 * Snapshot ingestion lacks a daylight-validity gate even though the current overnight camera mode is not suitable for HSV analysis.
+* There is no dedicated mobile app; the next step for close-up image capture is a browser-first mobile flow in the existing dashboard, tracked in GitHub issue `#11`.
+
+Close-up capture update on 2026-06-03:
+
+* The dashboard diagnosis flow now keeps `bed_id` under explicit UI control.
+* Phone users can trigger camera capture directly from the diagnosis panel with gallery fallback.
+* The mobile-first browser path is now the preferred capture workflow for per-bed close-up images.
+* A dedicated native mobile app is still deferred until the browser workflow proves insufficient.
 
 ## Important Commands
 

@@ -36,6 +36,7 @@ Updated: 2026-06-03
 - Configure concrete plant identification and disease provider credentials.
 - Verify one end-to-end upload from the dashboard.
 - Preserve close-up uploads as the path for disease assessment rather than overhead snapshots.
+- Keep iterating on the mobile-first browser capture flow for per-bed close-up images before considering any native app.
 
 ## Phase 5 — Expanded Sensing
 
