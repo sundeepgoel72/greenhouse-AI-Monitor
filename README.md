@@ -26,8 +26,8 @@ MVP implementation for Frigate snapshot based polyhouse monitoring.
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8088 --reload
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8088 --reload
 ```
 
 ```bash

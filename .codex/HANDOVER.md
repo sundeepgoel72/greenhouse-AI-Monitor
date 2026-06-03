@@ -102,14 +102,14 @@ Install backend dependencies:
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 Run backend:
 
 ```bash
 cd backend
-.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8088
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8088
 ```
 
 Install frontend dependencies:
@@ -210,7 +210,7 @@ Most recent data review highlights from 2026-06-03:
 Regression check:
 
 ```bash
-cd /mnt/ssd/greenhouse-AI-Monitor
+cd /mnt/ssd/projects/greenhouse-AI-Monitor
 scripts/regression_check.sh
 ```
 

@@ -21,7 +21,7 @@ Frontend:
 Current HP400 path:
 
 ```bash
-cd /mnt/ssd/greenhouse-AI-Monitor
+cd /mnt/ssd/projects/greenhouse-AI-Monitor
 ```
 
 ## Backend Environment
@@ -67,14 +67,14 @@ EXTERNAL_DIAGNOSIS_IMAGE_FIELD=image
 Backend:
 
 ```bash
-cd /mnt/ssd/greenhouse-AI-Monitor/backend
-.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8088
+cd /mnt/ssd/projects/greenhouse-AI-Monitor/backend
+.venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 8088
 ```
 
 Frontend:
 
 ```bash
-cd /mnt/ssd/greenhouse-AI-Monitor/frontend
+cd /mnt/ssd/projects/greenhouse-AI-Monitor/frontend
 npm run build
 npm run preview -- --host 0.0.0.0 --port 5173
 ```
@@ -84,7 +84,7 @@ npm run preview -- --host 0.0.0.0 --port 5173
 Systemd is installed on HP400 for the current deployment. Install or refresh services:
 
 ```bash
-cd /mnt/ssd/greenhouse-AI-Monitor
+cd /mnt/ssd/projects/greenhouse-AI-Monitor
 sudo scripts/install_systemd.sh
 ```
 
@@ -121,7 +121,7 @@ sudo systemctl restart greenhouse-backend.service greenhouse-frontend.service
 ## Smoke Check
 
 ```bash
-cd /mnt/ssd/greenhouse-AI-Monitor
+cd /mnt/ssd/projects/greenhouse-AI-Monitor
 scripts/smoke_check.sh
 ```
 
@@ -195,3 +195,4 @@ frontend/dist/
 * External plant/disease diagnosis requires provider URLs and API keys. Prefer close-up uploads for disease diagnosis; wide Frigate snapshots are best for growth/coverage trends.
 * Repeated alerts are suppressed within `ALERT_DEDUPE_MINUTES`.
 * If Home Assistant sensor timestamps repeat while backend readings continue to insert, inspect the ESP/Home Assistant sensor update path.
+* Repo-local helper scripts should derive the checkout root dynamically; deployed systemd units should keep explicit absolute paths.

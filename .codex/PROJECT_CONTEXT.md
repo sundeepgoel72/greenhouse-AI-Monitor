@@ -42,6 +42,10 @@ Runs:
 * MQTT
 * Frigate
 
+Runtime path on HP400:
+
+* `/mnt/ssd/projects/greenhouse-AI-Monitor`
+
 Development target:
 
 * Native Linux first
@@ -595,8 +599,8 @@ Backend:
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8088
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8088
 ```
 
 Frontend:

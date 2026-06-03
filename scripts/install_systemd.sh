@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="/mnt/ssd/projects/greenhouse-AI-Monitor"
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$REPO_DIR/backend"
 if [ ! -d ".venv" ]; then
   python3 -m venv .venv
 fi
-.venv/bin/pip install -r requirements.txt
+.venv/bin/python -m pip install -r requirements.txt
 
 cd "$REPO_DIR/frontend"
 npm install
