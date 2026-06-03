@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="/mnt/ssd/greenhouse-AI-Monitor"
+REPO_DIR="/mnt/ssd/projects/greenhouse-AI-Monitor"
 
 cd "$REPO_DIR/backend"
 if [ ! -d ".venv" ]; then
