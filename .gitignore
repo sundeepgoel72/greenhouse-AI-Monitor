@@ -3,6 +3,9 @@ __pycache__/
 .venv/
 greenhouse.db
 snapshots/
+.aider*
+.codex/
+.agents/
 
 node_modules/
 dist/
