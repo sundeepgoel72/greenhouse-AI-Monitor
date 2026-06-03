@@ -56,7 +56,7 @@ cp .env.example .env
 
 The frontend reads `VITE_API_BASE_URL`; by default it uses `http://localhost:8088`.
 
-Deployment details for HP400 are in `docs/HP400_DEPLOYMENT.md`.
+Deployment details are in `docs/DEPLOYMENT.md`.
 
 ## Scheduled camera ingestion
 
@@ -74,7 +74,7 @@ The scheduler waits one full interval after backend startup before its first aut
 Create a Home Assistant long-lived access token and map any numeric entities through `.env`:
 
 ```text
-HOME_ASSISTANT_BASE_URL=http://homeassistant.local:8123
+HOME_ASSISTANT_BASE_URL=http://<home-assistant-host>:8123
 HOME_ASSISTANT_TOKEN=your-long-lived-access-token
 HOME_ASSISTANT_SENSORS=[{"entity_id":"sensor.polyhouse_temperature","sensor_type":"temperature","unit":"C"},{"entity_id":"sensor.polyhouse_humidity","sensor_type":"humidity","unit":"%"},{"entity_id":"sensor.bed_1_soil_moisture","sensor_type":"soil_moisture","unit":"%","bed_id":1}]
 ```

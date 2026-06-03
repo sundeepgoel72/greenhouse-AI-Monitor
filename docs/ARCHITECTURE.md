@@ -5,7 +5,7 @@
 ```text
 Camera
   ↓
-Frigate (HP400)
+Frigate (camera host)
   ↓
 Snapshot Extraction
   ↓
@@ -21,7 +21,7 @@ Home Assistant
 ```text
 Camera
   ↓
-Frigate (HP400)
+Frigate (camera host)
   ↓
 Greenhouse AI Monitor
   ↓

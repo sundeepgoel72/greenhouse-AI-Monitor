@@ -4,7 +4,7 @@ Released: 2026-06-01
 
 ## Summary
 
-Version `0.1.0` is the first standalone HP400 deployment of Greenhouse AI Monitor. It collects Frigate snapshots, applies saved bed ROI polygons, calculates OpenCV canopy metrics, stores results in SQLite, publishes MQTT metrics, ingests Home Assistant environment readings, and serves a React dashboard for monitoring and calibration.
+Version `0.1.0` is the first standalone deployment of Greenhouse AI Monitor. It collects Frigate snapshots, applies saved bed ROI polygons, calculates OpenCV canopy metrics, stores results in SQLite, publishes MQTT metrics, ingests Home Assistant environment readings, and serves a React dashboard for monitoring and calibration.
 
 ## Implementation
 
@@ -25,7 +25,7 @@ Backend:
 - FastAPI service on port `8088`.
 - SQLite database at `backend/greenhouse.db`.
 - Scheduled ingestion controlled by `SCHEDULED_INGEST_ENABLED` and `ANALYSIS_INTERVAL_SECONDS`.
-- Frigate camera key: `RoofBigPolyhouse`.
+- Frigate camera key: `main_camera`.
 - Generic Home Assistant sensor ingestion through mapped entity IDs.
 - Configurable HSV metric thresholds and alert thresholds.
 - Generic external plant/disease diagnosis API wrapper for uploaded images.
@@ -75,10 +75,10 @@ Runtime configuration is in ignored file `backend/.env`. Required local integrat
 
 ```env
 FRIGATE_BASE_URL=http://localhost:5000
-FRIGATE_CAMERA=RoofBigPolyhouse
-HOME_ASSISTANT_BASE_URL=http://192.168.1.72:8123
+FRIGATE_CAMERA=main_camera
+HOME_ASSISTANT_BASE_URL=http://<home-assistant-host>:8123
 HOME_ASSISTANT_TOKEN=<long-lived-token>
-HOME_ASSISTANT_SENSORS=[{"entity_id":"sensor.roofbigpolyhouse_bigpolyhouse_temperature","sensor_type":"temperature","unit":"°C"},{"entity_id":"sensor.roofbigpolyhouse_bigpolyhouse_humidity","sensor_type":"humidity","unit":"%"}]
+HOME_ASSISTANT_SENSORS=[{"entity_id":"sensor.polyhouse_temperature","sensor_type":"temperature","unit":"°C"},{"entity_id":"sensor.polyhouse_humidity","sensor_type":"humidity","unit":"%"}]
 ```
 
 Plant/disease providers are optional until accounts and API keys are configured:
@@ -122,13 +122,13 @@ The regression script runs backend tests, frontend production build, HTTP smoke 
 
 ## Regression Result
 
-Last verified on HP400:
+Last verified on the local deployment host:
 
 - Backend tests: `8 passed`.
 - Frontend production build: passed.
 - HTTP smoke checks: passed.
 - `/api/config`: returned `alert_sensor_stale_minutes=60`.
-- Recent BigPolyHouse readings were available.
+- Recent polyhouse readings were available.
 - Backend and frontend systemd services were active.
 
 ## Remaining Work

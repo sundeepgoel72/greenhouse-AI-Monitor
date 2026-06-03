@@ -4,13 +4,13 @@ Released: 2026-06-03
 
 ## Summary
 
-Version `0.1.1` is an operational rebaseline release for the HP400 deployment of Greenhouse AI Monitor. It does not change the deployed architecture, but it captures the current runtime findings, resets the roadmap around verified production behavior, and promotes the daylight-only validity rule for overhead snapshot analysis.
+Version `0.1.1` is an operational rebaseline release for the current deployment of Greenhouse AI Monitor. It does not change the deployed architecture, but it captures the current runtime findings, resets the roadmap around verified production behavior, and promotes the daylight-only validity rule for overhead snapshot analysis.
 
 ## Rebaseline Findings
 
 - Snapshot collection is active and storing data at roughly 30-minute intervals.
 - Daylight overhead frames are usable for ROI-based canopy and soil estimation.
-- Overnight `RoofBigPolyhouse` frames switch to monochrome IR and are not valid for the current HSV-based analysis path.
+- Overnight camera frames switch to monochrome IR and are not valid for the current HSV-based analysis path.
 - Operational rule: treat snapshot analysis as valid only from 1 hour after sunrise until 1 hour before sunset.
 - The current database review on 2026-06-03 showed 74 snapshots, 296 metrics, 150 sensor readings, and 201 alerts.
 - Sensor history contains plausible daytime trends plus obvious startup/source outliers, including `128.4 °C` and `119.4%`.

@@ -13,8 +13,8 @@ cd "$REPO_DIR/frontend"
 npm install
 npm run build
 
-install -m 0644 "$REPO_DIR/deploy/systemd/greenhouse-backend.service" /etc/systemd/system/greenhouse-backend.service
-install -m 0644 "$REPO_DIR/deploy/systemd/greenhouse-frontend.service" /etc/systemd/system/greenhouse-frontend.service
+sed "s|__REPO_DIR__|$REPO_DIR|g" "$REPO_DIR/deploy/systemd/greenhouse-backend.service" | sudo tee /etc/systemd/system/greenhouse-backend.service >/dev/null
+sed "s|__REPO_DIR__|$REPO_DIR|g" "$REPO_DIR/deploy/systemd/greenhouse-frontend.service" | sudo tee /etc/systemd/system/greenhouse-frontend.service >/dev/null
 
 systemctl daemon-reload
 systemctl enable greenhouse-backend.service

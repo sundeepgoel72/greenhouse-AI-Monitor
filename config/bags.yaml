@@ -1,5 +1,5 @@
 camera:
-  id: RoofBigPolyhouse
+  id: main_camera
   source: frigate
   mount_height_ft: 6
   notes: "Single existing Frigate camera covering four grow bags. ROI values are placeholders until calibrated from a snapshot."
@@ -7,7 +7,7 @@ camera:
 bags:
   bag1:
     crop: tomato
-    camera: RoofBigPolyhouse
+    camera: main_camera
     roi:
       x: 80
       y: 120
@@ -16,7 +16,7 @@ bags:
 
   bag2:
     crop: spinach
-    camera: RoofBigPolyhouse
+    camera: main_camera
     roi:
       x: 520
       y: 120
@@ -25,7 +25,7 @@ bags:
 
   bag3:
     crop: chilli
-    camera: RoofBigPolyhouse
+    camera: main_camera
     roi:
       x: 80
       y: 470
@@ -34,7 +34,7 @@ bags:
 
   bag4:
     crop: coriander
-    camera: RoofBigPolyhouse
+    camera: main_camera
     roi:
       x: 520
       y: 470
